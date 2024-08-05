@@ -197,7 +197,7 @@ class Facial_Primitives_Random:
     
 
     # ------------------------------------------------------------
-    def mouth_12units(self, mouthCtrl, random_coefficient = None):
+    def mouth_12units(self, random_coefficient = None):
         '''
         input: random_coefficient , default=0.5
         output: 12 dof of mouth

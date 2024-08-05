@@ -129,7 +129,7 @@ class HeadCtrl(Serial):
 #直接执行这个.py文件运行下边代码，import到其他脚本中下边代码不会执行
 if __name__ == '__main__':
 
-    ctrl = HeadCtrl('/dev/ttyACM1')
+    ctrl = HeadCtrl('COM10')
 
     ctrl.left_blink          = 0.47  #  0.47
     ctrl.left_eye_erect      = 0.5   #  0.5
