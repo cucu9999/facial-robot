@@ -2,11 +2,14 @@ from utils.servo_v2.HeadCtrlKit import HeadCtrl
 from utils.servo_v2.MouthCtrlKit import MouthCtrl
 import numpy as np
 import time
+import os
 
+script_dir = os.path.dirname(__file__)
+img_dir = os.path.join(script_dir,"datacollect/rena86")
+label_dir = img_dir + "/label.npy"
 # file_path = 'label_nohead_3000.npy'
-file_path = './img/label.npy'
 
-data = np.load(file_path)
+data = np.load(label_dir)
 print(data.shape)
 head_data = data[:,:13]
 mouth_data = data[:,-12:]

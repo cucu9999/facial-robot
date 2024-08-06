@@ -94,7 +94,7 @@ def main():
     headCtrl = HeadCtrl(port_head)    # 921600
     mouthCtrl = MouthCtrl(port_mouth) # 921600
 
-    cap = cv2.VideoCapture(2)
+    cap = cv2.VideoCapture(3)
 
     warmup_frames = 30
     max_retries = 10
@@ -119,7 +119,8 @@ def main():
             
 
     servosCtrl = Servos_Ctrl()
-
+    zeroServos = Servos()
+    servosCtrl.plan_and_pub(zeroServos,headCtrl,mouthCtrl)
     event = servosCtrl.event
     stop_event = servosCtrl.stop
 
@@ -134,7 +135,7 @@ def main():
     servo_thread.join()
 
     print('Stop')
-    zeroServos = Servos()
+    
     servosCtrl.plan_and_pub(zeroServos,headCtrl,mouthCtrl)
     print(zeroServos.to_list())
 
