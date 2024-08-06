@@ -15,11 +15,14 @@ from plan_ctrl_head_v3_emo import Servos_Ctrl,Servos
 import numpy as np
 
 
-env_dir = os.path.join(script_dir, "../rena_utils")
-img_dir = os.path.join(script_dir, "data_cache2process/face_img_test")
-label_dir = os.path.join(script_dir, "data_cache2process")
+# env_dir = os.path.join(script_dir, "../rena_utils")
+# img_dir = os.path.join(script_dir, "data_cache2process/face_img_test")
+# label_dir = os.path.join(script_dir, "data_cache2process")
 
-img_dir = "./img"
+img_dir = os.path.join(script_dir,"datacollect/rena86")
+# 确保路径存在，若不存在则创建
+os.makedirs(img_dir, exist_ok=True)
+
 label_dir = img_dir + "/label.npy" # "/home/imillm/Desktop/0731_rena_data"
 
 
@@ -64,26 +67,24 @@ def capture_and_save(headCtrl,mouthCtrl, cap, event, stop_event):
             break
 
         if event.is_set(): 
-            save_frames(frame, img_dir, save_name = f"captured_frame_{count:05d}.png")
             servo = headCtrl.msgs + mouthCtrl.msgs
             servo_list.append(servo)
-            print(f'111111{servo}')
+            save_frames(frame, img_dir, save_name = f"captured_frame_{count:05d}.png")
+            print(f'111111第{count}次{len(servo_list)}')
             count += 1
             event.clear()
 
         if stop_event.is_set():
             # np.save("/home/imillm/Desktop/0730_rena_data/label.npy", servo_list)
             np.save(label_dir, servo_list)
+            stop_event.clear()
+            break
 
 def ServoCtrlThread(counter,servosCtrl,headCtrl,mouthCtrl):
     while counter:
         new_servos = servosCtrl.Random_servos()
         servosCtrl.plan_and_pub(new_servos,headCtrl,mouthCtrl)
         counter -= 1
-    if counter == 0:
-        zeroServos = Servos()
-        servosCtrl.plan_and_pub(zeroServos,headCtrl,mouthCtrl)
-
     servosCtrl.stop.set()
 
 def main():
@@ -93,7 +94,7 @@ def main():
     headCtrl = HeadCtrl(port_head)    # 921600
     mouthCtrl = MouthCtrl(port_mouth) # 921600
 
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(2)
 
     warmup_frames = 30
     max_retries = 10
@@ -115,7 +116,7 @@ def main():
             ret, _ = cap.read()
             if not ret:
                 logging.error("******camera_error***** Failed to capture frame ******camera_error*******")
-            break
+            
 
     servosCtrl = Servos_Ctrl()
 
@@ -126,12 +127,16 @@ def main():
     capture_thread = threading.Thread(target = capture_and_save, args=(headCtrl,mouthCtrl, cap, event, stop_event))
     capture_thread.start()
 
-    servo_thread = threading.Thread(target=ServoCtrlThread,args=(1000,servosCtrl,headCtrl,mouthCtrl))
+    servo_thread = threading.Thread(target=ServoCtrlThread,args=(750,servosCtrl,headCtrl,mouthCtrl))
     servo_thread.start()
 
     capture_thread.join()
     servo_thread.join()
 
+    print('Stop')
+    zeroServos = Servos()
+    servosCtrl.plan_and_pub(zeroServos,headCtrl,mouthCtrl)
+    print(zeroServos.to_list())
 
 if __name__ == '__main__':
     main()

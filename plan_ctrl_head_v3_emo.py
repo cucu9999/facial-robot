@@ -38,50 +38,50 @@ import copy
 
 class Servos:
     def __init__(self,
-                 head_dian=[0.53, 10], head_yao=[0.5, 2], head_bai=[0.5, 2],
-                 left_blink=[0.47, 1],
-                 left_eye_erect=[0.5, 1], left_eye_level=[0.5, 1],
-                 left_eyebrow_erect=[0.01, 1], left_eyebrow_level=[0.01, 1],
-                 right_blink=[0.47, 1], 
-                 right_eye_erect=[0.5, 1], right_eye_level=[0.5, 1],
-                 right_eyebrow_erect=[0.01, 1], right_eyebrow_level=[0.01, 1],
-                 mouthUpperUpLeft=[0.1, 1], mouthUpperUpRight=[0.1, 1],
-                 mouthLowerDownLeft=[0.2, 1], mouthLowerDownRight=[0.2, 1],
-                 mouthCornerUpLeft=[0.5, 1], mouthCornerUpRight=[0.5, 1],
-                 mouthCornerDownLeft=[0.5, 1], mouthCornerDownRight=[0.5, 1],
-                 jawOpenLeft=[0.01, 1], jawOpenRight=[0.01, 1],
-                 jawBackLeft=[0.5, 1], jawBackRight=[0.5, 1]):
+                 head_dian=None, head_yao=None, head_bai=None,
+                 left_blink=None,
+                 left_eye_erect=None, left_eye_level=None,
+                 left_eyebrow_erect=None, left_eyebrow_level=None,
+                 right_blink=None, 
+                 right_eye_erect=None, right_eye_level=None,
+                 right_eyebrow_erect=None, right_eyebrow_level=None,
+                 mouthUpperUpLeft=None, mouthUpperUpRight=None,
+                 mouthLowerDownLeft=None, mouthLowerDownRight=None,
+                 mouthCornerUpLeft=None, mouthCornerUpRight=None,
+                 mouthCornerDownLeft=None, mouthCornerDownRight=None,
+                 jawOpenLeft=None, jawOpenRight=None,
+                 jawBackLeft=None, jawBackRight=None):
         
-        self.head_dian = head_dian
-        self.head_bai = head_bai
-        self.head_yao = head_yao
-
-        self.left_blink = left_blink
-        self.left_eye_erect = left_eye_erect
-        self.left_eye_level = left_eye_level
-        self.left_eyebrow_erect = left_eyebrow_erect
-        self.left_eyebrow_level = left_eyebrow_level
-
-        self.right_blink = right_blink
-        self.right_eye_erect = right_eye_erect
-        self.right_eye_level = right_eye_level
-        self.right_eyebrow_erect = right_eyebrow_erect
-        self.right_eyebrow_level = right_eyebrow_level
+        self.head_dian = head_dian if head_dian is not None else [0.53, 1]
+        self.head_yao = head_yao if head_yao is not None else [0.5, 1]
+        self.head_bai = head_bai if head_bai is not None else [0.5, 1]
         
-        self.mouthUpperUpLeft = mouthUpperUpLeft
-        self.mouthUpperUpRight = mouthUpperUpRight
-        self.mouthLowerDownLeft = mouthLowerDownLeft
-        self.mouthLowerDownRight = mouthLowerDownRight
+        self.left_blink = left_blink if left_blink is not None else [0.47, 1]
+        self.left_eye_erect = left_eye_erect if left_eye_erect is not None else [0.5, 4]
+        self.left_eye_level = left_eye_level if left_eye_level is not None else [0.5, 4]
+        self.left_eyebrow_erect = left_eyebrow_erect if left_eyebrow_erect is not None else [0.01, 4]
+        self.left_eyebrow_level = left_eyebrow_level if left_eyebrow_level is not None else [0.01, 4]
+        
+        self.right_blink = right_blink if right_blink is not None else [0.47, 1]
+        self.right_eye_erect = right_eye_erect if right_eye_erect is not None else [0.5, 4]
+        self.right_eye_level = right_eye_level if right_eye_level is not None else [0.5, 4]
+        self.right_eyebrow_erect = right_eyebrow_erect if right_eyebrow_erect is not None else [0.01, 4]
+        self.right_eyebrow_level = right_eyebrow_level if right_eyebrow_level is not None else [0.01, 4]
 
-        self.mouthCornerUpLeft = mouthCornerUpLeft
-        self.mouthCornerUpRight = mouthCornerUpRight
-        self.mouthCornerDownLeft = mouthCornerDownLeft
-        self.mouthCornerDownRight = mouthCornerDownRight
-
-        self.jawOpenLeft = jawOpenLeft
-        self.jawOpenRight = jawOpenRight
-        self.jawBackLeft = jawBackLeft
-        self.jawBackRight = jawBackRight
+        self.mouthUpperUpLeft = mouthUpperUpLeft if mouthUpperUpLeft is not None else [0.1, 1]
+        self.mouthUpperUpRight = mouthUpperUpRight if mouthUpperUpRight is not None else [0.1, 1]
+        self.mouthLowerDownLeft = mouthLowerDownLeft if mouthLowerDownLeft is not None else [0.2, 1]
+        self.mouthLowerDownRight = mouthLowerDownRight if mouthLowerDownRight is not None else [0.2, 1]
+        
+        self.mouthCornerUpLeft = mouthCornerUpLeft if mouthCornerUpLeft is not None else [0.5, 1]
+        self.mouthCornerUpRight = mouthCornerUpRight if mouthCornerUpRight is not None else [0.5, 1]
+        self.mouthCornerDownLeft = mouthCornerDownLeft if mouthCornerDownLeft is not None else [0.5, 1]
+        self.mouthCornerDownRight = mouthCornerDownRight if mouthCornerDownRight is not None else [0.5, 1]
+        
+        self.jawOpenLeft = jawOpenLeft if jawOpenLeft is not None else [0.01, 4]
+        self.jawOpenRight = jawOpenRight if jawOpenRight is not None else [0.01, 4]
+        self.jawBackLeft = jawBackLeft if jawBackLeft is not None else [0.5, 4]
+        self.jawBackRight = jawBackRight if jawBackRight is not None else [0.5, 4]
 
 
     def to_list(self):
@@ -455,10 +455,8 @@ class Servos_Ctrl:
 
             headCtrl.send()
             mouthCtrl.send()
-
-            time.sleep(0.02*1) # 实际更改为舵机执行周期的整数倍 --> 0.02 * n, n取整数
-
             self.event.set()
+            time.sleep(0.02*50) # 实际更改为舵机执行周期的整数倍 --> 0.02 * n, n取整数
         
         return True
 

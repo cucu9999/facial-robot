@@ -93,18 +93,18 @@ class HeadCtrl(Serial):
             # node = servo.jdMin + node*(servo.jdMax-servo.jdMin) 
             servo_init = {1:servo.jdMin, -1:servo.jdMax}
             node = servo_init[servo.norm] + node*(servo.jdMax - servo.jdMin) * servo.norm
-
-            if node and node != servo.pos: # 目标位置改变
-                if node != 0: # msg 没有值
+            target_pos = node
+            if node and target_pos != servo.pos: # 目标位置改变
+                if target_pos != 0: # msg 没有值
                     # 限幅
-                    if node > servo.jdMax:
-                        node = servo.jdMax
-                    if node < servo.jdMin:
-                        node = servo.jdMin
-                    servo.pos = node
-                    node = int((node + servo.fOffSet) * servo.fScale)
-                    pos_l = node & 0xFF
-                    pos_h = (node >> 8) & 0x07
+                    if target_pos > servo.jdMax:
+                        target_pos = servo.jdMax
+                    if target_pos < servo.jdMin:
+                        target_pos = servo.jdMin
+                    servo.pos = target_pos
+                    target_pos = int((target_pos + servo.fOffSet) * servo.fScale)
+                    pos_l = target_pos & 0xFF
+                    pos_h = (target_pos >> 8) & 0x07
                     pos_h = pos_h | (servo.id<<3)
                     # print(servo.id)
                     # print(pos_h,pos_l)
