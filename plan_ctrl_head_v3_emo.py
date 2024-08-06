@@ -151,12 +151,18 @@ class Servos_Event:
     def __init__(self):
         self.flag = False
         self._lock = threading.Lock()
+
     def set(self):
-        self.flag = True
+        with self._lock:
+            self.flag = True
+
     def clear(self):
-        self.flag = False
+        with self._lock:
+            self.flag = False
+
     def is_set(self):
-        return self.flag
+        with self._lock:
+            return self.flag
 
 class Servos_Ctrl:
     def __init__(self):
