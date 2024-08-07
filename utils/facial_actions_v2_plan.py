@@ -173,7 +173,7 @@ class Facial_Primitives_Random:
         rand_blink = random.choice([0, 0.47])
 
         if rand_level > rand_blink:
-            self.left_blink = 0.47
+            self.left_blink = 0.47 #0.47
             self.right_blink =  0.47
 
             self.left_eye_level =  rand_level

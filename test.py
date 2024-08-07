@@ -5,7 +5,7 @@ import time
 import os
 
 script_dir = os.path.dirname(__file__)
-img_dir = os.path.join(script_dir,"datacollect/rena86")
+img_dir = os.path.join(script_dir,"datacollect/rena_0807_nohead_qian")
 label_dir = img_dir + "/label.npy"
 # file_path = 'label_nohead_3000.npy'
 
@@ -15,10 +15,10 @@ head_data = data[:,:13]
 mouth_data = data[:,-12:]
 
 def ContrlHead(data):
-    crtl1 = MouthCtrl('COM9')
+    crtl1 = MouthCtrl('COM7')
 
-    ctrl = HeadCtrl('COM10')
-    for row in data[:]:
+    ctrl = HeadCtrl('COM8')
+    for row in data[8:]:
         ctrl.left_blink          = row[0]   # 0.47
         ctrl.left_eye_erect      = row[1]   # 0.5
         ctrl.left_eye_level      = row[2]   # 0.5
@@ -54,7 +54,7 @@ def ContrlHead(data):
         ctrl.send()
         crtl1.send()
         print(ctrl.msgs)
-        time.sleep(1)
+        time.sleep(2000)
 
 
 
