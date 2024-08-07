@@ -18,7 +18,7 @@ def ContrlHead(data):
     crtl1 = MouthCtrl('COM7')
 
     ctrl = HeadCtrl('COM8')
-    for row in data[8:]:
+    for row in data[28:]:
         ctrl.left_blink          = row[0]   # 0.47
         ctrl.left_eye_erect      = row[1]   # 0.5
         ctrl.left_eye_level      = row[2]   # 0.5
