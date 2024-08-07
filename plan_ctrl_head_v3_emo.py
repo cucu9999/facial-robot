@@ -52,8 +52,8 @@ class Servos:
                  jawOpenLeft=None, jawOpenRight=None,
                  jawBackLeft=None, jawBackRight=None):
         
-        self.head_dian = head_dian if head_dian is not None else [0.53, 1]
-        self.head_yao = head_yao if head_yao is not None else [0.5, 1]
+        self.head_dian = head_dian if head_dian is not None else [0.53, 4]
+        self.head_yao = head_yao if head_yao is not None else [0.5, 4]
         self.head_bai = head_bai if head_bai is not None else [0.5, 1]
         
         self.left_blink = left_blink if left_blink is not None else [0.47, 1]
@@ -461,9 +461,12 @@ class Servos_Ctrl:
 
             headCtrl.send()
             mouthCtrl.send()
-            self.event.set()
-            time.sleep(0.02*50) # 实际更改为舵机执行周期的整数倍 --> 0.02 * n, n取整数
+
+            time.sleep(0.02*25) # 实际更改为舵机执行周期的整数倍 --> 0.02 * n, n取整数
         
+            self.event.set()
+
+            time.sleep(0.02*25)
         return True
 
     def plan_and_pub(self, servos, headCtrl, mouthCtrl):
