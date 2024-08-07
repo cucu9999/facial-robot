@@ -19,7 +19,7 @@ import numpy as np
 # img_dir = os.path.join(script_dir, "data_cache2process/face_img_test")
 # label_dir = os.path.join(script_dir, "data_cache2process")
 
-img_dir = os.path.join(script_dir,"datacollect/rena86")
+img_dir = os.path.join(script_dir,"datacollect/rena_0807_nohead_qian")
 # 确保路径存在，若不存在则创建
 os.makedirs(img_dir, exist_ok=True)
 
@@ -84,12 +84,13 @@ def ServoCtrlThread(counter,servosCtrl,headCtrl,mouthCtrl):
     while counter:
         new_servos = servosCtrl.Random_servos()
         servosCtrl.plan_and_pub(new_servos,headCtrl,mouthCtrl)
+        # time.sleep(1.5)         #给记录留0.5秒
         counter -= 1
     servosCtrl.stop.set()
 
 def main():
-    port_head  =  'COM10'
-    port_mouth =  'COM9'
+    port_head  =  'COM8'
+    port_mouth =  'COM7'
 
     headCtrl = HeadCtrl(port_head)    # 921600
     mouthCtrl = MouthCtrl(port_mouth) # 921600
@@ -122,6 +123,7 @@ def main():
     zeroServos = Servos()
     servosCtrl.plan_and_pub(zeroServos,headCtrl,mouthCtrl)
     event = servosCtrl.event
+    event.clear()
     stop_event = servosCtrl.stop
 
     # 主线程：启动相机、保存图片以及servo标签
