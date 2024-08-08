@@ -19,7 +19,7 @@ import numpy as np
 # img_dir = os.path.join(script_dir, "data_cache2process/face_img_test")
 # label_dir = os.path.join(script_dir, "data_cache2process")
 
-img_dir = os.path.join(script_dir,"datacollect/rena_0807_nohead_qian")
+img_dir = os.path.join(script_dir,"datacollect/rena_0808_head_qian_01")
 # 确保路径存在，若不存在则创建
 os.makedirs(img_dir, exist_ok=True)
 

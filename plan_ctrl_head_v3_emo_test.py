@@ -17,25 +17,6 @@ import contextlib
 import copy
 
 
-# port_head  =  'COM10'
-# port_mouth =  'COM9'
-
-# while True:
-#     try:
-#         headCtrl = HeadCtrl(port_head)    # 921600
-#         headCtrl.send()
-#         mouthCtrl = MouthCtrl(port_mouth) # 921600
-#         mouthCtrl.send()
-#         headCtrl.close()
-#         mouthCtrl.close()
-#         break
-#     except:
-#         print("初始化失败,请检查串口及其权限")
-#         time.sleep(1)
-
-
-
-
 class Servos:
     def __init__(self,
                  head_dian=None, head_yao=None, head_bai=None,
@@ -52,9 +33,9 @@ class Servos:
                  jawOpenLeft=None, jawOpenRight=None,
                  jawBackLeft=None, jawBackRight=None):
         
-        self.head_dian = head_dian if head_dian is not None else [0.53, 4]
-        self.head_yao = head_yao if head_yao is not None else [0.5, 4]
-        self.head_bai = head_bai if head_bai is not None else [0.5, 4]
+        self.head_dian = head_dian if head_dian is not None else [0.53, 10]
+        self.head_yao = head_yao if head_yao is not None else [0.5, 10]
+        self.head_bai = head_bai if head_bai is not None else [0.5, 10]
         
         self.left_blink = left_blink if left_blink is not None else [0.47, 1]
         self.left_eye_erect = left_eye_erect if left_eye_erect is not None else [0.5, 4]
@@ -142,10 +123,7 @@ class Servos:
                 self.jawBackLeft == other.jawBackLeft and
                 self.jawBackRight == other.jawBackRight)
 
-# Create an instance of Current_Servos with default values
-# cur_servos = Servos()
 
-# new_servos = Servos()
 
 class Servos_Event:
     def __init__(self):
@@ -163,6 +141,7 @@ class Servos_Event:
     def is_set(self):
         with self._lock:
             return self.flag
+
 
 class Servos_Ctrl:
     def __init__(self):
@@ -379,18 +358,12 @@ class Servos_Ctrl:
 
         return Ctrldata
 
-    def pub(self,headCtrl, mouthCtrl, Ctrldata):
+    def pub(self, headCtrl, mouthCtrl, Ctrldata, cycles):
         for servo_values in Ctrldata:
             if self.stop.is_set():
+                self.stop.clear()
+                print("转向了新servo---------------------------------------")
                 break
-            # headCtrl.head_yao = self.cur_servos.head_yao[0]
-            # headCtrl.left_blink = new_servos.left_blink[0]
-            # headCtrl.right_blink = new_servos.right_blink[0]
-
-            # headCtrl.right_eye_level  = self.cur_servos.right_eye_level[0]
-            # headCtrl.left_eye_level  = self.cur_servos.left_eye_level[0]
-            # mouthCtrl.jawOpenLeft = 0
-            # mouthCtrl.jawOpenRight = 0
 
             # 将舵机值分配给头部和眼睛控制器
             headCtrl.head_dian = servo_values[0]
@@ -462,17 +435,18 @@ class Servos_Ctrl:
             headCtrl.send()
             mouthCtrl.send()
 
-            time.sleep(0.02*25) # 实际更改为舵机执行周期的整数倍 --> 0.02 * n, n取整数
+            time.sleep(0.02*cycles) # 实际更改为舵机执行周期的整数倍 --> 0.02 * n, n取整数
         
             self.event.set()
 
-            time.sleep(0.02*25)
+            # time.sleep(0.02*25)
+
         return True
 
-    def plan_and_pub(self, servos, headCtrl, mouthCtrl):
+    def plan_and_pub(self, servos, headCtrl, mouthCtrl, cycles):
         Ctrldata = self.plan(servos)
         # print(Ctrldata)
-        self.pub(headCtrl, mouthCtrl, Ctrldata)
+        self.pub(headCtrl, mouthCtrl, Ctrldata, cycles)
 
     def Random_servos(self):
         random_servos = copy.deepcopy(self.cur_servos)
@@ -484,103 +458,90 @@ class Servos_Ctrl:
         random_servos.head_yao[0]  = head_list3[1]
         random_servos.head_bai[0]  = head_list3[2]
 
-        eyebrow_list4= facial_action.eyebrow_4units()
-        random_servos.left_eyebrow_level[0] = eyebrow_list4[0]
-        random_servos.right_eye_level[0] = eyebrow_list4[1]
-        random_servos.right_eyebrow_erect[0] = eyebrow_list4[2]
-        random_servos.left_eyebrow_erect[0] = eyebrow_list4[3]
+        # eyebrow_list4= facial_action.eyebrow_4units()
+        # random_servos.left_eyebrow_level[0] = eyebrow_list4[0]
+        # random_servos.right_eye_level[0] = eyebrow_list4[1]
+        # random_servos.right_eyebrow_erect[0] = eyebrow_list4[2]
+        # random_servos.left_eyebrow_erect[0] = eyebrow_list4[3]
 
-        eye_list6= facial_action.eye_6units()
-        random_servos.left_blink[0] = eye_list6[0]
-        random_servos.left_eye_erect[0] = eye_list6[1]
-        random_servos.left_eye_level[0] = eye_list6[2]
-        random_servos.right_blink[0] = eye_list6[3]
-        random_servos.right_eye_erect[0] = eye_list6[4]
-        random_servos.right_eye_level[0] = eye_list6[5]
+        # eye_list6= facial_action.eye_6units()
+        # random_servos.left_blink[0] = eye_list6[0]
+        # random_servos.left_eye_erect[0] = eye_list6[1]
+        # random_servos.left_eye_level[0] = eye_list6[2]
+        # random_servos.right_blink[0] = eye_list6[3]
+        # random_servos.right_eye_erect[0] = eye_list6[4]
+        # random_servos.right_eye_level[0] = eye_list6[5]
 
-        mouth_list12 = facial_action.mouth_12units()
-        random_servos.mouthUpperUpLeft[0] = mouth_list12[0]
-        random_servos.mouthUpperUpRight[0] = mouth_list12[1]
-        random_servos.mouthLowerDownLeft[0] = mouth_list12[2]
-        random_servos.mouthLowerDownRight[0] = mouth_list12[3]
+        # mouth_list12 = facial_action.mouth_12units()
+        # random_servos.mouthUpperUpLeft[0] = mouth_list12[0]
+        # random_servos.mouthUpperUpRight[0] = mouth_list12[1]
+        # random_servos.mouthLowerDownLeft[0] = mouth_list12[2]
+        # random_servos.mouthLowerDownRight[0] = mouth_list12[3]
 
-        random_servos.mouthCornerUpLeft[0] = mouth_list12[4]
-        random_servos.mouthCornerUpRight[0] = mouth_list12[5]
-        random_servos.mouthCornerDownLeft[0] = mouth_list12[6]
-        random_servos.mouthCornerDownRight[0] = mouth_list12[7]
+        # random_servos.mouthCornerUpLeft[0] = mouth_list12[4]
+        # random_servos.mouthCornerUpRight[0] = mouth_list12[5]
+        # random_servos.mouthCornerDownLeft[0] = mouth_list12[6]
+        # random_servos.mouthCornerDownRight[0] = mouth_list12[7]
 
-        random_servos.jawOpenLeft[0] = mouth_list12[8]
-        random_servos.jawOpenRight[0] = mouth_list12[9]
-        random_servos.jawBackLeft[0] = mouth_list12[10]
-        random_servos.jawBackRight[0] = mouth_list12[11]
+        # random_servos.jawOpenLeft[0] = mouth_list12[8]
+        # random_servos.jawOpenRight[0] = mouth_list12[9]
+        # random_servos.jawBackLeft[0] = mouth_list12[10]
+        # random_servos.jawBackRight[0] = mouth_list12[11]
 
         return random_servos
 
-# async def main():
-
-#     headCtrl = HeadCtrl(port_head)
-#     mouthCtrl = MouthCtrl(port_mouth)
-
-#     p_head = 0.8
-#     p_action = 0.7
-
-#     stop_event = asyncio.Event()
-
-#     # 执行随机表情动作 -- 眼睛、头部运动
-#     mouth_zero = time.time()
-#     time_zero = time.time()
-#     i = 0
-#     while True:
-#         now1 = time.time()
-#         mouth_now = time.time()
-
-#         await asyncio.sleep(0.02)   # 实际更改为舵机执行周期的整数倍 --> 0.02 * n, n取整数
-#         if (int(now1))%2 == 0 & (random.uniform(0, 1) > 0.5):
-#             if random.uniform(0, 1) > p_action:
-#                 if random.uniform(0, 1) > p_head:
-#                     new_servos.head_yao = [0.5 + random.choice([-0.3, 0, 0.3]), random.choice([20, 15])]
-        
-#         if now1 - time_zero > 3:
-#             new_servos.left_blink = [0,1]
-#             new_servos.right_blink = [0,1]
-#         if now1 - time_zero > 3.1:
-#             new_servos.left_blink = [0.5,1]
-#             new_servos.right_blink = [0.5,1]
-#             time_zero = now1
-
-#         task = asyncio.create_task(pub(headCtrl, mouthCtrl, new_servos, stop_event))
-#         stop_event.set()
-#         await task
-#         stop_event.clear()
-#         task = asyncio.create_task(pub(headCtrl, mouthCtrl, new_servos, stop_event))
-
-
-def action(headCtrl, mouthCtrl):
-    temp = Servos_Ctrl()
-    for i in range(100):
-        
-        random_servos = temp.Random_servos()
-        # new_servos.head_yao = [0.8, 50]
-        temp.plan_and_pub(random_servos, headCtrl, mouthCtrl)
-        print("111111")
-        # headCtrl.send()
-        # mouthCtrl.send()
 
 
 if __name__ == "__main__":
+    import threading
+    import queue
 
-    # event = asyncio.Event()
-    # new_servos.head_yao = [0.2, 1]
-    # asyncio.run(pub(headCtrl, mouthCtrl, new_servos, event))
-    # time.sleep(2)
-    # new_servos.head_yao = [0.5, 1]
-    # asyncio.run(pub(headCtrl, mouthCtrl, new_servos, event))
+    target_queue = queue.Queue()
+
+    port_head  = 'COM8'
+    port_mouth = 'COM7'
+    # port_head = "/dev/ttyS8"  # '/dev/ttyACM1'
+    # port_mouth = "/dev/ttyS9" # '/dev/ttyACM0'
+
+    headCtrl = HeadCtrl(port_head)
+    mouthCtrl = MouthCtrl(port_mouth)
+
+    temp_ctrl = Servos_Ctrl()
+    new_servos = Servos_Ctrl()
+
+    # def action(headCtrl, mouthCtrl):
+    #     while True:
+    #         temp_ctrl.plan_and_pub(new_servos, headCtrl, mouthCtrl, cycles=10)
 
 
-    # asyncio.run(main())
-    headCtrl = HeadCtrl('COM8')
-    mouthCtrl = MouthCtrl('COM7')
-        
-    action(headCtrl, mouthCtrl)
+    # def plan():
+    #     '''
+    #     模拟自定义消息的发布状态
+    #     '''
+    #     while True:
+    #         new_servos.head_yao = [random.uniform(0.3,0.8), 10]
+    #         temp_ctrl.stop.set()
+    #         time.sleep(1)
 
-    # pass
+    def action(headCtrl, mouthCtrl):
+        while True:
+            temp_ctrl.plan_and_pub(new_servos.cur_servos, headCtrl, mouthCtrl, cycles=15)
+
+
+    def plan():
+        '''
+        模拟自定义消息的发布状态
+        '''
+        while True:
+            new_servos.cur_servos = copy.deepcopy(temp_ctrl.Random_servos())
+            temp_ctrl.stop.set()
+            time.sleep(1)
+
+    plan_thread = threading.Thread(target=plan)
+    plan_thread.start()
+    action_thread = threading.Thread(target=action,args=(headCtrl,mouthCtrl))
+    action_thread.start()
+
+    plan_thread.join()
+    action_thread.join()
+

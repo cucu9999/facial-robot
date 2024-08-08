@@ -5,7 +5,7 @@ import time
 import os
 
 script_dir = os.path.dirname(__file__)
-img_dir = os.path.join(script_dir,"datacollect/rena_0807_nohead_qian/img")
+img_dir = os.path.join(script_dir,"datacollect/rena_0807_nohead_qian/")
 label_dir = os.path.join(img_dir + "label.npy")
 # file_path = 'label_nohead_3000.npy'
 
