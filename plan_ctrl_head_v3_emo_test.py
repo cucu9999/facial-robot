@@ -362,7 +362,7 @@ class Servos_Ctrl:
         for servo_values in Ctrldata:
             if self.stop.is_set():
                 self.stop.clear()
-                print("转向了新servo---------------------------------------")
+                # print("转向了新servo---------------------------------------")
                 break
 
             # 将舵机值分配给头部和眼睛控制器
@@ -525,7 +525,8 @@ if __name__ == "__main__":
 
     def action(headCtrl, mouthCtrl):
         while True:
-            temp_ctrl.plan_and_pub(new_servos.cur_servos, headCtrl, mouthCtrl, cycles=15)
+            temp_ctrl.plan_and_pub(new_servos.cur_servos, headCtrl, mouthCtrl, cycles=1)
+            # print(temp_ctrl.cur_servos.to_list())
 
 
     def plan():
@@ -534,14 +535,19 @@ if __name__ == "__main__":
         '''
         while True:
             new_servos.cur_servos = copy.deepcopy(temp_ctrl.Random_servos())
+            # new_servos.cur_servos.head_yao = [random.uniform(0.3,0.45), 10]
             temp_ctrl.stop.set()
-            time.sleep(1)
+            time.sleep(0.1)
 
-    plan_thread = threading.Thread(target=plan)
-    plan_thread.start()
-    action_thread = threading.Thread(target=action,args=(headCtrl,mouthCtrl))
-    action_thread.start()
+    try:
+        plan_thread = threading.Thread(target=plan)
+        plan_thread.start()
+        action_thread = threading.Thread(target=action,args=(headCtrl,mouthCtrl))
+        action_thread.start()
 
-    plan_thread.join()
-    action_thread.join()
+        plan_thread.join()
+        action_thread.join()
+    finally:
+        temp_ctrl.stop.set()
+        # pass
 

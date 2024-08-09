@@ -1,11 +1,7 @@
-import socket
-
 from utils.servo_v2.HeadCtrlKit import HeadCtrl
 from utils.servo_v2.MouthCtrlKit import MouthCtrl
 from utils.facial_actions_v2_plan import Facial_Primitives_Random
 import time
-import asyncio
-import random
 import numpy as np
 
 import threading
@@ -16,22 +12,6 @@ import wave
 import contextlib
 import copy
 
-
-# port_head  =  'COM10'
-# port_mouth =  'COM9'
-
-# while True:
-#     try:
-#         headCtrl = HeadCtrl(port_head)    # 921600
-#         headCtrl.send()
-#         mouthCtrl = MouthCtrl(port_mouth) # 921600
-#         mouthCtrl.send()
-#         headCtrl.close()
-#         mouthCtrl.close()
-#         break
-#     except:
-#         print("初始化失败,请检查串口及其权限")
-#         time.sleep(1)
 
 
 
@@ -52,21 +32,21 @@ class Servos:
                  jawOpenLeft=None, jawOpenRight=None,
                  jawBackLeft=None, jawBackRight=None):
         
-        self.head_dian = head_dian if head_dian is not None else [0.53, 4]
-        self.head_yao = head_yao if head_yao is not None else [0.5, 4]
-        self.head_bai = head_bai if head_bai is not None else [0.5, 4]
+        self.head_dian = head_dian if head_dian is not None else [0.53, 10]
+        self.head_yao = head_yao if head_yao is not None else [0.5, 10]
+        self.head_bai = head_bai if head_bai is not None else [0.5, 10]
         
         self.left_blink = left_blink if left_blink is not None else [0.47, 1]
-        self.left_eye_erect = left_eye_erect if left_eye_erect is not None else [0.5, 4]
-        self.left_eye_level = left_eye_level if left_eye_level is not None else [0.5, 4]
-        self.left_eyebrow_erect = left_eyebrow_erect if left_eyebrow_erect is not None else [0.01, 4]
-        self.left_eyebrow_level = left_eyebrow_level if left_eyebrow_level is not None else [0.01, 4]
+        self.left_eye_erect = left_eye_erect if left_eye_erect is not None else [0.5, 10]
+        self.left_eye_level = left_eye_level if left_eye_level is not None else [0.5, 10]
+        self.left_eyebrow_erect = left_eyebrow_erect if left_eyebrow_erect is not None else [0.01, 10]
+        self.left_eyebrow_level = left_eyebrow_level if left_eyebrow_level is not None else [0.01, 10]
         
         self.right_blink = right_blink if right_blink is not None else [0.47, 1]
-        self.right_eye_erect = right_eye_erect if right_eye_erect is not None else [0.5, 4]
-        self.right_eye_level = right_eye_level if right_eye_level is not None else [0.5, 4]
-        self.right_eyebrow_erect = right_eyebrow_erect if right_eyebrow_erect is not None else [0.01, 4]
-        self.right_eyebrow_level = right_eyebrow_level if right_eyebrow_level is not None else [0.01, 4]
+        self.right_eye_erect = right_eye_erect if right_eye_erect is not None else [0.5, 10]
+        self.right_eye_level = right_eye_level if right_eye_level is not None else [0.5, 10]
+        self.right_eyebrow_erect = right_eyebrow_erect if right_eyebrow_erect is not None else [0.01, 10]
+        self.right_eyebrow_level = right_eyebrow_level if right_eyebrow_level is not None else [0.01, 10]
 
         self.mouthUpperUpLeft = mouthUpperUpLeft if mouthUpperUpLeft is not None else [0.1, 1]
         self.mouthUpperUpRight = mouthUpperUpRight if mouthUpperUpRight is not None else [0.1, 1]
@@ -78,10 +58,10 @@ class Servos:
         self.mouthCornerDownLeft = mouthCornerDownLeft if mouthCornerDownLeft is not None else [0.5, 1]
         self.mouthCornerDownRight = mouthCornerDownRight if mouthCornerDownRight is not None else [0.5, 1]
         
-        self.jawOpenLeft = jawOpenLeft if jawOpenLeft is not None else [0.01, 4]
-        self.jawOpenRight = jawOpenRight if jawOpenRight is not None else [0.01, 4]
-        self.jawBackLeft = jawBackLeft if jawBackLeft is not None else [0.5, 4]
-        self.jawBackRight = jawBackRight if jawBackRight is not None else [0.5, 4]
+        self.jawOpenLeft = jawOpenLeft if jawOpenLeft is not None else [0.01, 10]
+        self.jawOpenRight = jawOpenRight if jawOpenRight is not None else [0.01, 10]
+        self.jawBackLeft = jawBackLeft if jawBackLeft is not None else [0.5, 10]
+        self.jawBackRight = jawBackRight if jawBackRight is not None else [0.5, 10]
 
 
     def to_list(self):
@@ -142,10 +122,6 @@ class Servos:
                 self.jawBackLeft == other.jawBackLeft and
                 self.jawBackRight == other.jawBackRight)
 
-# Create an instance of Current_Servos with default values
-# cur_servos = Servos()
-
-# new_servos = Servos()
 
 class Servos_Event:
     def __init__(self):
@@ -383,14 +359,6 @@ class Servos_Ctrl:
         for servo_values in Ctrldata:
             if self.stop.is_set():
                 break
-            # headCtrl.head_yao = self.cur_servos.head_yao[0]
-            # headCtrl.left_blink = new_servos.left_blink[0]
-            # headCtrl.right_blink = new_servos.right_blink[0]
-
-            # headCtrl.right_eye_level  = self.cur_servos.right_eye_level[0]
-            # headCtrl.left_eye_level  = self.cur_servos.left_eye_level[0]
-            # mouthCtrl.jawOpenLeft = 0
-            # mouthCtrl.jawOpenRight = 0
 
             # 将舵机值分配给头部和眼睛控制器
             headCtrl.head_dian = servo_values[0]
@@ -516,44 +484,6 @@ class Servos_Ctrl:
 
         return random_servos
 
-# async def main():
-
-#     headCtrl = HeadCtrl(port_head)
-#     mouthCtrl = MouthCtrl(port_mouth)
-
-#     p_head = 0.8
-#     p_action = 0.7
-
-#     stop_event = asyncio.Event()
-
-#     # 执行随机表情动作 -- 眼睛、头部运动
-#     mouth_zero = time.time()
-#     time_zero = time.time()
-#     i = 0
-#     while True:
-#         now1 = time.time()
-#         mouth_now = time.time()
-
-#         await asyncio.sleep(0.02)   # 实际更改为舵机执行周期的整数倍 --> 0.02 * n, n取整数
-#         if (int(now1))%2 == 0 & (random.uniform(0, 1) > 0.5):
-#             if random.uniform(0, 1) > p_action:
-#                 if random.uniform(0, 1) > p_head:
-#                     new_servos.head_yao = [0.5 + random.choice([-0.3, 0, 0.3]), random.choice([20, 15])]
-        
-#         if now1 - time_zero > 3:
-#             new_servos.left_blink = [0,1]
-#             new_servos.right_blink = [0,1]
-#         if now1 - time_zero > 3.1:
-#             new_servos.left_blink = [0.5,1]
-#             new_servos.right_blink = [0.5,1]
-#             time_zero = now1
-
-#         task = asyncio.create_task(pub(headCtrl, mouthCtrl, new_servos, stop_event))
-#         stop_event.set()
-#         await task
-#         stop_event.clear()
-#         task = asyncio.create_task(pub(headCtrl, mouthCtrl, new_servos, stop_event))
-
 
 def action(headCtrl, mouthCtrl):
     temp = Servos_Ctrl()
@@ -568,16 +498,6 @@ def action(headCtrl, mouthCtrl):
 
 
 if __name__ == "__main__":
-
-    # event = asyncio.Event()
-    # new_servos.head_yao = [0.2, 1]
-    # asyncio.run(pub(headCtrl, mouthCtrl, new_servos, event))
-    # time.sleep(2)
-    # new_servos.head_yao = [0.5, 1]
-    # asyncio.run(pub(headCtrl, mouthCtrl, new_servos, event))
-
-
-    # asyncio.run(main())
     headCtrl = HeadCtrl('COM8')
     mouthCtrl = MouthCtrl('COM7')
         

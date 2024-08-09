@@ -19,7 +19,7 @@ import numpy as np
 # img_dir = os.path.join(script_dir, "data_cache2process/face_img_test")
 # label_dir = os.path.join(script_dir, "data_cache2process")
 
-img_dir = os.path.join(script_dir,"datacollect/rena_0808_head_qian_01")
+img_dir = os.path.join(script_dir,"datacollect/rena_0809_head_qian_01")
 # 确保路径存在，若不存在则创建
 os.makedirs(img_dir, exist_ok=True)
 
@@ -130,7 +130,7 @@ def main():
     capture_thread = threading.Thread(target = capture_and_save, args=(headCtrl,mouthCtrl, cap, event, stop_event))
     capture_thread.start()
 
-    servo_thread = threading.Thread(target=ServoCtrlThread,args=(750,servosCtrl,headCtrl,mouthCtrl))
+    servo_thread = threading.Thread(target=ServoCtrlThread,args=(300,servosCtrl,headCtrl,mouthCtrl))
     servo_thread.start()
 
     capture_thread.join()
