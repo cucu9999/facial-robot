@@ -2,19 +2,21 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-from model.model import Model_bs_mlp, Model_bs_mlp_v2
+from model.model import Model_bs_mlp, Model_bs_mlp_v2,Kan_Model
 from torch.utils.data import TensorDataset, DataLoader, random_split
-
+import csv
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 import os
+import time
 
 script_dir = os.path.dirname(__file__)
 
+os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':16:8'  # 设置CuBLAS工作空间配置以保证确定性
 
 
-def load_data(sample_path, label_path, seq_len = 5):
+def load_data(sample_path, label_path):
     # data_landmarks_dir = os.path.join(script_dir, sample_path) # 暂时不用
     data_blendshapes_dir = os.path.join(script_dir, sample_path)
     data_labels_dir = os.path.join(script_dir, label_path)
@@ -55,11 +57,15 @@ def create_model(model_name):
         return Model_bs_mlp_v2()
     elif model_name == "Model_bs_mlp":
         return Model_bs_mlp()
+    elif model_name == "Kan_Model":
+        return Kan_Model()
     else:
         raise ValueError("Unknown model type")
 
 
 def plt_vis(n_epochs, train_losses):
+    # 将train_losses中的张量转换为CPU上的NumPy数组
+    train_losses = [loss.cpu().item() for loss in train_losses]
     plt.plot(range(1, n_epochs+1), train_losses, label='Training Loss')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
@@ -123,10 +129,11 @@ def test_one_epoch(dataloader, device, model, criterion, optimizer):
 
 
 # training
-def train(model, device, dataloader, test_dataloader, criterion, optimizer,scheduler, epochs):
+def train(model_name,model, device, dataloader, test_dataloader, criterion, optimizer,scheduler, epochs,lr,bs):
     model.to(device)
     model.train()
     train_losses = []
+    test_losses = []
     for epoch in range(epochs):
 
         epoch_loss = train_one_epoch(dataloader, device, model, criterion, optimizer)
@@ -134,6 +141,7 @@ def train(model, device, dataloader, test_dataloader, criterion, optimizer,sched
         scheduler.step()
 
         train_losses.append(epoch_loss) # .cpu().detach().numpy())
+        test_losses.append(test_loss)
 
 
         print(f"Epoch [{epoch+1}/{epochs}], epoch_loss: {epoch_loss:.6f}, test_loss:{test_loss:.6f}")
@@ -145,7 +153,17 @@ def train(model, device, dataloader, test_dataloader, criterion, optimizer,sched
         #     for i in range(num_samples):
         #         print(f"Output: {output[i].detach().cpu().numpy()}, \n Target: {target[i].detach().cpu().numpy()} \n")
 
-    return train_losses
+
+    current_timestamp = time.time()
+    now = time.localtime(current_timestamp)
+    formatted_now = time.strftime("%Y-%m-%d_%H-%M-%S",now)
+    with open(f'./losses/losses_{model_name}_epochs{epochs}_lr{lr}_bs{bs}_{formatted_now}.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Epoch', 'Train Loss', 'Test Loss'])
+        for epoch in range(epochs):
+            writer.writerow([epoch + 1, train_losses[epoch], test_losses[epoch]])
+
+    return train_losses,test_losses
 
 
 
@@ -165,7 +183,7 @@ def main(args):
     sample_path = os.path.join(script_dir, "rena_data/bs_2999.npy")
     label_path = os.path.join(script_dir, "rena_data/label_nohead_2999.npy")
 
-    blendshapes, labels = load_data(sample_path, label_path, seq_len = 5)
+    blendshapes, labels = load_data(sample_path, label_path)
 
     train_dataloader, test_dataloader = preprocess_data(blendshapes, labels,args.batch_size)
 
@@ -174,7 +192,9 @@ def main(args):
 
     # init model
     model = create_model(args.model)
-
+    model_name = args.model
+    lr = args.lr
+    bs = args.batch_size
     criterion = nn.MSELoss()
     # criterion = nn.L1Loss()
 
@@ -184,13 +204,18 @@ def main(args):
 
     # train and validate
     n_epochs = args.epochs # default = 10000
-    train_losses = train(model, device, train_dataloader, test_dataloader, criterion, optimizer, scheduler, n_epochs) 
+    train_losses,test_losses = train(model_name,model, device, train_dataloader, test_dataloader, criterion, optimizer, scheduler, n_epochs,lr,bs) 
 
     # val_loss = validate(model, dataloader, criterion)
     # print(f'Validation loss: {val_loss:.4f}')
 
     # save model and visualization
-    save_path = os.path.join(script_dir, "checkpoints/model.pth")
+    current_timestamp = time.time()
+    now = time.localtime(current_timestamp)
+    formatted_now = time.strftime("%Y-%m-%d_%H-%M-%S",now)
+    save_dir = os.path.join(script_dir, "checkpoints")
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = save_dir+f"/{model_name}_epochs{n_epochs}_{formatted_now}.pth"
     torch.save(model.state_dict(), save_path)
     plt_vis(n_epochs, train_losses)
 
@@ -200,8 +225,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Training script for LSTMNet') 
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')  # 0.00001
     parser.add_argument('--batch_size', type=int, default=256, help='Batch size')
-    parser.add_argument('--epochs', type=int, default=100000, help='Number of epochs')
-    parser.add_argument('--model', type=str, default='Model_bs_mlp_v2', help='Model name for Model_bs_mlp_v2, Model_bs_mlp')
+    parser.add_argument('--epochs', type=int, default=1000, help='Number of epochs')
+    parser.add_argument('--model', type=str, default='Model_bs_mlp', help='Model name for Model_bs_mlp_v2, Model_bs_mlp,Kan_Model')
     
     args = parser.parse_args()
 

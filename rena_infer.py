@@ -15,63 +15,6 @@ from utils.servo_control import ServoCtrl
 
 
 
-
-class MLP(nn.Module):
-    def __init__(self):
-        super(MLP, self).__init__()
-        self.fc1 = nn.Linear(478 * 3, 512)  # 478 个点 * 3 个通道 = 
-        self.bn1 = nn.BatchNorm1d(512)
-        self.fc2 = nn.Linear(512, 256)
-        self.bn2 = nn.BatchNorm1d(256)
-
-        # self.fc3 = nn.Linear(256, 128)
-        # self.bn3 = nn.BatchNorm1d(128)
-
-        self.fc4 = nn.Linear(256, 14)   # 输出层对应 14 个电机
-
-        self.drout = nn.Dropout(0.5)
-
-        self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x):
-        x = x.view(-1, 478 * 3)  
-        x = self.drout(self.relu(self.bn1(self.fc1(x))))
-        x = self.drout(self.relu(self.bn2(self.fc2(x))))
-
-        x = self.sigmoid(self.fc4(x))
-
-        return x
-
-
-class Model_blendshapes(nn.Module):
-    def __init__(self):
-        super(Model_blendshapes, self).__init__()
-        self.fc1 = nn.Linear(52, 128)  # 478 个点 * 3 个通道 = 
-        self.bn1 = nn.BatchNorm1d(128)
-        self.fc2 = nn.Linear(128, 256)
-        self.bn2 = nn.BatchNorm1d(256)
-        self.fc3 = nn.Linear(256, 64)
-        self.bn3 = nn.BatchNorm1d(64)
-        self.fc4 = nn.Linear(64, 14)  # 输出层对应 14 个电机
-
-        self.drout = nn.Dropout(0.5)
-
-        self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x):
-        x = self.drout(self.relu(self.bn1(self.fc1(x))))
-        x = self.drout(self.relu(self.bn2(self.fc2(x))))
-        x = self.drout(self.relu(self.bn3(self.fc3(x))))
-        x = self.sigmoid(self.fc4(x))
-
-        return x
-
-
-
-
-
 def infer(model, landmarks):
     model.eval()
     with torch.no_grad():
