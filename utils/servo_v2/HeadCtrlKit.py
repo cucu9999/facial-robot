@@ -1,4 +1,5 @@
 from serial import *
+import platform
 import time
 
 # TODO: 从xml文件直接读取配置
@@ -93,18 +94,18 @@ class HeadCtrl(Serial):
             # node = servo.jdMin + node*(servo.jdMax-servo.jdMin) 
             servo_init = {1:servo.jdMin, -1:servo.jdMax}
             node = servo_init[servo.norm] + node*(servo.jdMax - servo.jdMin) * servo.norm
-
-            if node and node != servo.pos: # 目标位置改变
-                if node != 0: # msg 没有值
+            target_pos = node
+            if node and target_pos != servo.pos: # 目标位置改变
+                if target_pos != 0: # msg 没有值
                     # 限幅
-                    if node > servo.jdMax:
-                        node = servo.jdMax
-                    if node < servo.jdMin:
-                        node = servo.jdMin
-                    servo.pos = node
-                    node = int((node + servo.fOffSet) * servo.fScale)
-                    pos_l = node & 0xFF
-                    pos_h = (node >> 8) & 0x07
+                    if target_pos > servo.jdMax:
+                        target_pos = servo.jdMax
+                    if target_pos < servo.jdMin:
+                        target_pos = servo.jdMin
+                    servo.pos = target_pos
+                    target_pos = int((target_pos + servo.fOffSet) * servo.fScale)
+                    pos_l = target_pos & 0xFF
+                    pos_h = (target_pos >> 8) & 0x07
                     pos_h = pos_h | (servo.id<<3)
                     # print(servo.id)
                     # print(pos_h,pos_l)
@@ -129,7 +130,18 @@ class HeadCtrl(Serial):
 #直接执行这个.py文件运行下边代码，import到其他脚本中下边代码不会执行
 if __name__ == '__main__':
 
-    ctrl = HeadCtrl('/dev/ttyACM1')
+    os_type = platform.system()
+    
+    if os_type == "Linux":
+        port_head = '/dev/ttyACM1'
+    elif os_type == "Darwin":
+        port_head = ""
+    elif os_type == "Windows":
+        port_head = 'COM7'
+    else:
+        print("Unsupported OS, Please check your PC system")
+
+    ctrl = HeadCtrl(port_head)
 
     ctrl.left_blink          = 0.47  #  0.47
     ctrl.left_eye_erect      = 0.5   #  0.5
@@ -147,6 +159,5 @@ if __name__ == '__main__':
     ctrl.head_yao            = 0.5   #  0.5
     ctrl.head_bai            = 0.5   #  0.5
 
-    print(ctrl.msgs)
+    print(f"已发布头部舵机指令：{ctrl.msgs}")
     ctrl.send()
-    print(ctrl.msgs)

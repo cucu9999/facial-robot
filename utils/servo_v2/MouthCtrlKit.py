@@ -1,4 +1,6 @@
 from serial import *
+import sys
+import platform
 import time
 
 # TODO: 从xml文件直接读取配置
@@ -83,18 +85,19 @@ class MouthCtrl(Serial):
 
             servo_init = {1:servo.jdMin, -1:servo.jdMax}
             node = servo_init[servo.norm] + node*(servo.jdMax - servo.jdMin) * servo.norm
+            target_pos = node
 
-            if node and node != servo.pos: # 目标位置改变
+            if node and target_pos != servo.pos: # 目标位置改变
                 if node != 0: # msg 没有值
                     # 限幅
-                    if node > servo.jdMax:
-                        node = servo.jdMax
-                    if node < servo.jdMin:
-                        node = servo.jdMin
-                    servo.pos = node
-                    node = int((node + servo.fOffSet) * servo.fScale)
-                    pos_l = node & 0xFF
-                    pos_h = (node >> 8) & 0x07
+                    if target_pos > servo.jdMax:
+                        target_pos = servo.jdMax
+                    if target_pos < servo.jdMin:
+                        target_pos = servo.jdMin
+                    servo.pos = target_pos
+                    target_pos = int((target_pos + servo.fOffSet) * servo.fScale)
+                    pos_l = target_pos & 0xFF
+                    pos_h = (target_pos >> 8) & 0x07
                     pos_h = pos_h | (servo.id<<3)
                     # print(servo.id)
                     # print(pos_h,pos_l)
@@ -116,10 +119,21 @@ class MouthCtrl(Serial):
             # print('send to servo ok')
 
 
-#直接执行这个.py文件运行下边代码，import到其他脚本中下边代码不会执行
+
 if __name__ == '__main__':
+    os_type = platform.system()
     
-    ctrl = MouthCtrl('/dev/ttyACM0')
+    if os_type == "Linux":
+        port_mouth = '/dev/ttyACM0'
+    elif os_type == "Darwin":
+        port_mouth = ""
+    elif os_type == "Windows":
+        port_mouth = 'COM7'
+    else:
+        print("Unsupported OS, Please check your PC system")
+
+    
+    ctrl = MouthCtrl(port_mouth)
 
     ctrl.mouthUpperUpLeft     = 0.1   # 左上嘴唇  0.1
     ctrl.mouthUpperUpRight    = 0.1   # 右上嘴唇  0.1
@@ -137,7 +151,6 @@ if __name__ == '__main__':
     ctrl.jawBackLeft          = 0.5   # 0.5  左前 [0.01 - 0.5 - 0.99] 右后
     ctrl.jawBackRight         = 0.5   # 0.5  左后 [0.01 - 0.5 - 0.99] 右前
 
-    print(ctrl.msgs)
+    print(f"已发布嘴部舵机指令：{ctrl.msgs}")
     ctrl.send()
-    print(ctrl.msgs)
 
