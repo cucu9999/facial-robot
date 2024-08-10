@@ -75,7 +75,7 @@ def capture_and_save(headCtrl,mouthCtrl, cap, event, stop_event):
 def ServoCtrlThread(counter,servosCtrl,headCtrl,mouthCtrl):
     while counter:
         new_servos = servosCtrl.Random_servos()
-        servosCtrl.plan_and_pub(new_servos,headCtrl,mouthCtrl)
+        servosCtrl.plan_and_pub(new_servos,headCtrl,mouthCtrl,cycles=25)
         # time.sleep(1.5)         #给记录留0.5秒
         counter -= 1
     servosCtrl.stop.set()
@@ -91,8 +91,8 @@ def main():
         port_head = '/dev/ttyACM1'
         port_mouth = '/dev/ttyACM0'
     elif os_type == "Windows":
-        port_head = 'COM7'
-        port_mouth = 'COM8'
+        port_head = 'COM8'
+        port_mouth = 'COM7'
     else:
         print("Unsupported OS, Please check your PC system")
 
@@ -125,7 +125,7 @@ def main():
 
     servosCtrl = Servos_Ctrl()
     zeroServos = Servos()
-    servosCtrl.plan_and_pub(zeroServos,headCtrl,mouthCtrl)
+    servosCtrl.plan_and_pub(zeroServos,headCtrl,mouthCtrl,cycles=1)
     event = servosCtrl.event
     event.clear()
     stop_event = servosCtrl.stop
@@ -134,7 +134,7 @@ def main():
     capture_thread = threading.Thread(target = capture_and_save, args=(headCtrl,mouthCtrl, cap, event, stop_event))
     capture_thread.start()
 
-    servo_thread = threading.Thread(target=ServoCtrlThread,args=(300,servosCtrl,headCtrl,mouthCtrl))
+    servo_thread = threading.Thread(target=ServoCtrlThread,args=(2,servosCtrl,headCtrl,mouthCtrl))
     servo_thread.start()
 
     capture_thread.join()
@@ -142,7 +142,7 @@ def main():
 
     print('Stop')
     
-    servosCtrl.plan_and_pub(zeroServos,headCtrl,mouthCtrl)
+    servosCtrl.plan_and_pub(zeroServos,headCtrl,mouthCtrl,cycles=1)
     print(zeroServos.to_list())
 
 if __name__ == '__main__':
