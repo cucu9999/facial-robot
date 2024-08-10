@@ -32,11 +32,6 @@ def img2label():
                 [landmark[i].x, landmark[i].y, landmark[i].z] for i in range(len(landmark))
             ])
 
-            # 样本数量少时，保存为txt文件，方便查看
-            # with open(os.path.join(script_dir,"data_landmarks.txt"), "a") as f:
-            #     f.write(str(landmark_np.tolist()) + "\n")
-            
-            # 样本数量少时，保存为npy文件，方便处理，原生numpy格式
             landmark_np_sum.append(landmark_np)
 
             # print("第{}帧检测并保存关键点成功", counter)
