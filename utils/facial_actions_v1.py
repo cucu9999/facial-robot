@@ -6,7 +6,7 @@ sys.path.append(script_dir)
 import time
 import random
 
-from servo_control import ServoCtrl, Servo_Trans
+from utils.servo_v1.servo_control import ServoCtrl, Servo_Trans
 
 
 

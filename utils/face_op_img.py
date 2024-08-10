@@ -99,7 +99,9 @@ if __name__ == "__main__":
     img_path = os.path.join(script_dir, "test.png")
     img = cv2.imread(img_path)
 
-    landmark, blendshape, r_mat = face_mesh_detector.get_results(img)
+    landmark, blendshape, r_mat = face_mesh_detector.get_results(img) # 测试接口文件
+    
+    # 可视化代码
     if landmark is not None:
         landmark_np = np.array([[landmark[i].x, landmark[i].y, landmark[i].z] for i in range(len(landmark))])
         face_mesh_detector.visualize_results(img, landmark) 
