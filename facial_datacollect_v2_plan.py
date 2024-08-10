@@ -1,5 +1,6 @@
 import sys
 import os
+import platform
 script_dir = os.path.dirname(__file__)
 # >> /media/2T/yongtong/Rena/rena_datasets
 
@@ -81,8 +82,19 @@ def ServoCtrlThread(counter,servosCtrl,headCtrl,mouthCtrl):
 
 
 def main():
-    port_head  =  'COM8'
-    port_mouth =  'COM7'
+    os_type = platform.system()
+    
+    if os_type == "Linux":
+        port_head = '/dev/ttyACM1'
+        port_mouth = '/dev/ttyACM0'
+    elif os_type == "Darwin":
+        port_head = '/dev/ttyACM1'
+        port_mouth = '/dev/ttyACM0'
+    elif os_type == "Windows":
+        port_head = 'COM7'
+        port_mouth = 'COM8'
+    else:
+        print("Unsupported OS, Please check your PC system")
 
     headCtrl = HeadCtrl(port_head)    # 921600
     mouthCtrl = MouthCtrl(port_mouth) # 921600
