@@ -2,4 +2,6 @@ __pycache__/
 checkpoints/**
 log/**
 losses/
+.vscode/
 
+.aider*
