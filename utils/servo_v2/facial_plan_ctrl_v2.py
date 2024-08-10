@@ -1,6 +1,6 @@
-from HeadCtrlKit import HeadCtrl
-from MouthCtrlKit import MouthCtrl
-from facial_actions_v2 import Facial_Primitives_Random
+from .HeadCtrlKit import HeadCtrl
+from .MouthCtrlKit import MouthCtrl
+from .facial_actions_v2 import Facial_Primitives_Random
 import time
 import numpy as np
 
@@ -499,7 +499,7 @@ def action(headCtrl, mouthCtrl):
         
         random_servos = temp.Random_servos()
         # new_servos.head_yao = [0.8, 50]
-        temp.plan_and_pub(random_servos, headCtrl, mouthCtrl, cycles=25)
+        temp.plan_and_pub(random_servos, headCtrl, mouthCtrl, cycles=2)
         print("111111")
         # headCtrl.send()
         # mouthCtrl.send()
