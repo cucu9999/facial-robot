@@ -1,6 +1,6 @@
 __pycache__/
-checkpoints/**
-log/**
+checkpoints/
+log/
 losses/
 .vscode/
 
