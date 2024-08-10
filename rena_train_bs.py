@@ -200,7 +200,7 @@ def main(args):
 
 
     optimizer = optim.Adam(model.parameters())  # , lr= args.lr)
-    scheduler = StepLR(optimizer, step_size=1000, gamma=0.1) 
+    scheduler = StepLR(optimizer, step_size=500, gamma=0.1) 
 
     # train and validate
     n_epochs = args.epochs # default = 10000
@@ -217,16 +217,14 @@ def main(args):
     os.makedirs(save_dir, exist_ok=True)
     save_path = save_dir+f"/{model_name}_epochs{n_epochs}_{formatted_now}.pth"
     torch.save(model.state_dict(), save_path)
-    plt_vis(n_epochs, train_losses)
-
-
+    plt_vis(n_epochs, train_losses,test_losses)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Training script for LSTMNet') 
-    parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')  # 0.00001
-    parser.add_argument('--batch_size', type=int, default=256, help='Batch size')
-    parser.add_argument('--epochs', type=int, default=1000, help='Number of epochs')
-    parser.add_argument('--model', type=str, default='Model_bs_mlp', help='Model name for Model_bs_mlp_v2, Model_bs_mlp,Kan_Model')
+    parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')  # 0.00001
+    parser.add_argument('--batch_size', type=int, default=512, help='Batch size')
+    parser.add_argument('--epochs', type=int, default=1500, help='Number of epochs')
+    parser.add_argument('--model', type=str, default='Model_bs_mlp_v2', help='Model name for Model_bs_mlp_v2, Model_bs_mlp,Kan_Model')
     
     args = parser.parse_args()
 
