@@ -1,4 +1,5 @@
 from serial import *
+import platform
 import time
 
 # TODO: 从xml文件直接读取配置
@@ -129,7 +130,18 @@ class HeadCtrl(Serial):
 #直接执行这个.py文件运行下边代码，import到其他脚本中下边代码不会执行
 if __name__ == '__main__':
 
-    ctrl = HeadCtrl('COM10')
+    os_type = platform.system()
+    
+    if os_type == "Linux":
+        port_head = '/dev/ttyACM1'
+    elif os_type == "Darwin":
+        port_head = ""
+    elif os_type == "Windows":
+        port_head = 'COM7'
+    else:
+        print("Unsupported OS, Please check your PC system")
+
+    ctrl = HeadCtrl(port_head)
 
     ctrl.left_blink          = 0.47  #  0.47
     ctrl.left_eye_erect      = 0.5   #  0.5
@@ -147,6 +159,5 @@ if __name__ == '__main__':
     ctrl.head_yao            = 0.5   #  0.5
     ctrl.head_bai            = 0.5   #  0.5
 
-    print(ctrl.msgs)
+    print(f"已发布头部舵机指令：{ctrl.msgs}")
     ctrl.send()
-    print(ctrl.msgs)
