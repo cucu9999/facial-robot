@@ -5,8 +5,8 @@ sys.path.append(script_dir)
 import platform
 import time
 import random
-from servo_v2.HeadCtrlKit import HeadCtrl
-from servo_v2.MouthCtrlKit import MouthCtrl
+from HeadCtrlKit import HeadCtrl
+from MouthCtrlKit import MouthCtrl
 import copy
 import threading
 

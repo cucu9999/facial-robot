@@ -1,6 +1,6 @@
-from utils.servo_v2.HeadCtrlKit import HeadCtrl
-from utils.servo_v2.MouthCtrlKit import MouthCtrl
-from utils.facial_actions_v2_plan import Facial_Primitives_Random
+from HeadCtrlKit import HeadCtrl
+from MouthCtrlKit import MouthCtrl
+from facial_actions_v2 import Facial_Primitives_Random
 import time
 import numpy as np
 
@@ -11,6 +11,7 @@ import sys
 import wave
 import contextlib
 import copy
+import platform
 
 
 
@@ -140,11 +141,13 @@ class Servos_Event:
         with self._lock:
             return self.flag
 
+
 class Servos_Ctrl:
     def __init__(self):
         self.cur_servos = Servos()
         self.event = Servos_Event()
         self.stop = Servos_Event()
+
 
     def plan(self,new_servos):
         max_steps = max(new_servos.head_yao[1], new_servos.head_bai[1],new_servos.head_dian[1],
@@ -355,9 +358,11 @@ class Servos_Ctrl:
 
         return Ctrldata
 
-    def pub(self,headCtrl, mouthCtrl, Ctrldata):
+
+    def pub(self, headCtrl, mouthCtrl, Ctrldata, cycles):
         for servo_values in Ctrldata:
             if self.stop.is_set():
+                self.stop.clear()
                 break
 
             # 将舵机值分配给头部和眼睛控制器
@@ -430,17 +435,19 @@ class Servos_Ctrl:
             headCtrl.send()
             mouthCtrl.send()
 
-            time.sleep(0.02*25) # 实际更改为舵机执行周期的整数倍 --> 0.02 * n, n取整数
+            time.sleep(0.02*cycles) # 实际更改为舵机执行周期的整数倍 --> 0.02 * n, n取整数
         
             self.event.set()
 
-            time.sleep(0.02*25)
+            # time.sleep(0.02*cycles)
         return True
 
-    def plan_and_pub(self, servos, headCtrl, mouthCtrl):
+
+    def plan_and_pub(self, servos, headCtrl, mouthCtrl, cycles):
         Ctrldata = self.plan(servos)
         # print(Ctrldata)
-        self.pub(headCtrl, mouthCtrl, Ctrldata)
+        self.pub(headCtrl, mouthCtrl, Ctrldata, cycles)
+
 
     def Random_servos(self):
         random_servos = copy.deepcopy(self.cur_servos)
@@ -452,37 +459,38 @@ class Servos_Ctrl:
         random_servos.head_yao[0]  = head_list3[1]
         random_servos.head_bai[0]  = head_list3[2]
 
-        eyebrow_list4= facial_action.eyebrow_4units()
-        random_servos.left_eyebrow_level[0] = eyebrow_list4[0]
-        random_servos.right_eye_level[0] = eyebrow_list4[1]
-        random_servos.right_eyebrow_erect[0] = eyebrow_list4[2]
-        random_servos.left_eyebrow_erect[0] = eyebrow_list4[3]
+        # eyebrow_list4= facial_action.eyebrow_4units()
+        # random_servos.left_eyebrow_level[0] = eyebrow_list4[0]
+        # random_servos.right_eye_level[0] = eyebrow_list4[1]
+        # random_servos.right_eyebrow_erect[0] = eyebrow_list4[2]
+        # random_servos.left_eyebrow_erect[0] = eyebrow_list4[3]
 
-        eye_list6= facial_action.eye_6units()
-        random_servos.left_blink[0] = eye_list6[0]
-        random_servos.left_eye_erect[0] = eye_list6[1]
-        random_servos.left_eye_level[0] = eye_list6[2]
-        random_servos.right_blink[0] = eye_list6[3]
-        random_servos.right_eye_erect[0] = eye_list6[4]
-        random_servos.right_eye_level[0] = eye_list6[5]
+        # eye_list6= facial_action.eye_6units()
+        # random_servos.left_blink[0] = eye_list6[0]
+        # random_servos.left_eye_erect[0] = eye_list6[1]
+        # random_servos.left_eye_level[0] = eye_list6[2]
+        # random_servos.right_blink[0] = eye_list6[3]
+        # random_servos.right_eye_erect[0] = eye_list6[4]
+        # random_servos.right_eye_level[0] = eye_list6[5]
 
-        mouth_list12 = facial_action.mouth_12units()
-        random_servos.mouthUpperUpLeft[0] = mouth_list12[0]
-        random_servos.mouthUpperUpRight[0] = mouth_list12[1]
-        random_servos.mouthLowerDownLeft[0] = mouth_list12[2]
-        random_servos.mouthLowerDownRight[0] = mouth_list12[3]
+        # mouth_list12 = facial_action.mouth_12units()
+        # random_servos.mouthUpperUpLeft[0] = mouth_list12[0]
+        # random_servos.mouthUpperUpRight[0] = mouth_list12[1]
+        # random_servos.mouthLowerDownLeft[0] = mouth_list12[2]
+        # random_servos.mouthLowerDownRight[0] = mouth_list12[3]
 
-        random_servos.mouthCornerUpLeft[0] = mouth_list12[4]
-        random_servos.mouthCornerUpRight[0] = mouth_list12[5]
-        random_servos.mouthCornerDownLeft[0] = mouth_list12[6]
-        random_servos.mouthCornerDownRight[0] = mouth_list12[7]
+        # random_servos.mouthCornerUpLeft[0] = mouth_list12[4]
+        # random_servos.mouthCornerUpRight[0] = mouth_list12[5]
+        # random_servos.mouthCornerDownLeft[0] = mouth_list12[6]
+        # random_servos.mouthCornerDownRight[0] = mouth_list12[7]
 
-        random_servos.jawOpenLeft[0] = mouth_list12[8]
-        random_servos.jawOpenRight[0] = mouth_list12[9]
-        random_servos.jawBackLeft[0] = mouth_list12[10]
-        random_servos.jawBackRight[0] = mouth_list12[11]
+        # random_servos.jawOpenLeft[0] = mouth_list12[8]
+        # random_servos.jawOpenRight[0] = mouth_list12[9]
+        # random_servos.jawBackLeft[0] = mouth_list12[10]
+        # random_servos.jawBackRight[0] = mouth_list12[11]
 
         return random_servos
+
 
 
 def action(headCtrl, mouthCtrl):
@@ -491,16 +499,29 @@ def action(headCtrl, mouthCtrl):
         
         random_servos = temp.Random_servos()
         # new_servos.head_yao = [0.8, 50]
-        temp.plan_and_pub(random_servos, headCtrl, mouthCtrl)
+        temp.plan_and_pub(random_servos, headCtrl, mouthCtrl, cycles=25)
         print("111111")
         # headCtrl.send()
         # mouthCtrl.send()
 
 
 if __name__ == "__main__":
-    headCtrl = HeadCtrl('COM8')
-    mouthCtrl = MouthCtrl('COM7')
+
+    os_type = platform.system()
+    
+    if os_type == "Linux":
+        port_head = '/dev/ttyACM1'
+        port_mouth = '/dev/ttyACM0'
+    elif os_type == "Darwin":
+        port_head = '/dev/ttyACM1'
+        port_mouth = '/dev/ttyACM0'
+    elif os_type == "Windows":
+        port_head = 'COM7'
+        port_mouth = 'COM8'
+    else:
+        print("Unsupported OS, Please check your PC system")
+    
+    headCtrl = HeadCtrl(port_head) 
+    mouthCtrl = MouthCtrl(port_mouth) 
         
     action(headCtrl, mouthCtrl)
-
-    # pass
