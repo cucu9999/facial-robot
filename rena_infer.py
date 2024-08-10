@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+import platform
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
@@ -10,9 +11,13 @@ script_dir = os.path.dirname(__file__)
 from utils.face_op_img import FaceMeshDetector
 from utils.face_op_stream import FaceMeshDetectorAsync
 from utils.setcamera import SetCamera
+from model.model import *
+from utils.servo_v2.facial_plan_ctrl_v2 import Servos_Ctrl
 
-from utils.servo_control import ServoCtrl
+from utils.servo_v2.HeadCtrlKit import HeadCtrl
+from utils.servo_v2.MouthCtrlKit import MouthCtrl
 
+from utils.servo_v2.facial_plan_ctrl_v2 import Servos_Ctrl, Servos
 
 
 def infer(model, landmarks):
@@ -52,24 +57,35 @@ def landmark_norm_trans(landmark_np_sum_array):
 def main():
 
     robot_msg = [[90, 50], [90, 50], [90, 100], [90, 100], [90, 50], [90, 50], [90, 50], [90, 100], [90, 100], [90, 50], [90, 800], [90, 500], [90, 500], [65, 50]]
+    os_type = platform.system()
+    
+    if os_type == "Linux":
+        port_head = '/dev/ttyACM1'
+        port_mouth = '/dev/ttyACM0'
+    elif os_type == "Darwin":
+        port_head = '/dev/ttyACM1'
+        port_mouth = '/dev/ttyACM0'
+    elif os_type == "Windows":
+        port_head = 'COM8'
+        port_mouth = 'COM7'
+    else:
+        print("Unsupported OS, Please check your PC system")
 
-    set_camera = SetCamera(index = 2)
+
+    headCtrl = HeadCtrl(port_head) 
+    mouthCtrl = MouthCtrl(port_mouth) 
+    set_camera = SetCamera(index = 0)
     face_mesh_detector = FaceMeshDetector()
     face_mesh_detector_async  = FaceMeshDetectorAsync()
-    model = MLP()
 
-    weights_path = os.path.join(script_dir,'rena_mlp_model.pth')
-    checkpoint = torch.load(weights_path)
-
-    model.load_state_dict(checkpoint)
-
-
-    model_bs = Model_blendshapes()
-    weights_path_bs = os.path.join(script_dir,'rena_mlp_blendshape_model.pth')
+    model_bs = Model_bs_mlp_v2()
+    weights_path_bs = os.path.join(script_dir,'checkpoint/Model_bs_mlp_v2_epochs1000_2024-08-09_16-48-24.pth')
+    weights_path_bs = r"C:\Users\21114\Desktop\MyProject\Rena_train_git2\checkpoints\Model_bs_mlp_v2_epochs1500_2024-08-10_15-30-07.pth"
     checkpoint_bs = torch.load(weights_path_bs)
 
     model_bs.load_state_dict(checkpoint_bs)
 
+    servo_ctrl = Servos_Ctrl()
 
     stream_flag = True
     image_flag = False
@@ -82,39 +98,14 @@ def main():
 
             landmark, bs, r_mat = face_mesh_detector_async.get_results()
 
-        # if image_flag:
-        #     img_path = os.path.join(script_dir,"../rena_datasets/face_img/00031.png")
-        #     img = cv2.imread(img_path)
-        #     landmark, bs, r_mat = face_mesh_detector.get_results(img)
-
-
-        # if landmark is not None:
-        #     landmark_tensor = torch.tensor([
-        #     [landmark[i].x, landmark[i].y, landmark[i].z] for i in range(len(landmark))], dtype= torch.float32)
-        
-        #     # 添加正则化，而后进行使用关键点进行推理
-        #     landmark_norm = landmark_norm_trans(landmark_tensor)
-
-        #     norm_servo = infer(model, landmark_norm) # shape(1, 14)
-
-
-        #     div_tensor = torch.tensor([85, 45, 60, 60, 100, 85, 45, 60, 60, 100, 140, 140, 140, 75])
-        #     sub_tensor = torch.tensor([60, 85, 60, 60, 40, 35, 50, 60, 60, 40, 20, 20, 20, 60])
-        #     servo = norm_servo[0] * div_tensor + sub_tensor
-
         if bs is not None:
             bs = torch.tensor(bs).unsqueeze(0)
-            norm_servo = infer(model_bs, bs) # servo --> shape(1, 14)
-            div_tensor = torch.tensor([85, 45, 60, 60, 100, 85, 45, 60, 60, 100, 140, 140, 140, 75])
-            sub_tensor = torch.tensor([60, 85, 60, 60, 40, 35, 50, 60, 60, 40, 20, 20, 20, 60])
-            servo = norm_servo[0] * div_tensor + sub_tensor
-            
-            for i in range(len(robot_msg)):
-                robot_msg[i][0] = int(servo[i])
-                
-            print(robot_msg)
-            servo_ctrl = ServoCtrl('/dev/ttyACM0', 115200) # 921600
-            servo_ctrl.send(robot_msg)
+            servo_tensor = infer(model_bs, bs) # servo --> shape(1, 14)
+            servo_list = servo_tensor.squeeze().tolist()
+            servo = Servos()
+            servo.input(servo_list)
+            servo_ctrl.plan_and_pub(servo, headCtrl, mouthCtrl, cycles=1)
+
 
 
 
