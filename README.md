@@ -1,8 +1,50 @@
-## plan_ctrl_head_v3_emo.py
 
-------
 
-这个文件是用于表情规划的中层接口
+# 表情机器人--自监督数据集采集项目
+
+> 本文件是用于采集表情头数据的程序，保存了每次运动的图像和舵机数据。适用于不同的表情机器人版本，目前已经迭代了rena_v1和rena_v2两版。
+
+## /data_collect
+
+采集的数据集保存的位置。命名为rena_月份日期(如rena_0724 --> 图片保存至/img文件夹，标签保存为.npy文件)
+
+## /data_process
+
+img2sample.py --> 用于把图片样本转化为bs或者landmarks
+verify_dataset.py --> 检测采集的舵机标签label.npy是否与表情机器人图片一一对应（务必确认）
+
+## /utils
+
+/servo_v1/servo_control.py --> v1机器人的舵机底层控制代码
+/servo_v1/facial_actions_v1.py --> v1机器人 随机面部表情动作原语
+
+/servo_v2/~CtrlKIt.py --> v2机器人的舵机底层控制代码
+/servo_v2/faciao_actions_v2.py --> v2机器人 随机面部表情动作原语
+/servo_v2/facial_plan_ctrl_v2--> v2机器人的舵机中层控制代码
+
+
+
+## facial_datacollect--数据采集
+
++ facial_datacollect_v1.py
+
+  第一版机器人的数据采集文件
+
++ facial_datacollect_v2.py
+
+  第二版的机器人随机表情的数据采集文件
+
++ facial_datacollect_v2_plan.py
+
+  第二版的机器人随机！连续！表情的数据采集文件
+
+
+
++ Tips：数据采集程序用到的舵机底层代码和数据集后处理代码均在utils中调用。测试用例-->test_plan_ctrl.py
+
+
+
+## 核心类说明
 
 ### Servos类
 
@@ -26,20 +68,8 @@
 
 ​	`Random_servos`函数引入Facial_Primitives_Random类，在基于当前的cur_servos的值上，随机生成一个新的舵机状态
 
-------
+## 
 
 
 
-## facial_datacollect_v2_plan.py
-
-------
-
-本文件是用于采集表情头数据的程序，保存了每次运动的图像和舵机数据
-
-
-facial_datacollect_v?.py为相应表情机器人版本的数据集采集程序，可以在datacollect文件夹中得到表情机器人的图片和舵机标签。
-data_process.py 为相应的数据集后处理程序，处理机器人表情图片和舵机角度至.npy数据集
-/datacollect 保存数据集，命名为rena_月份日期(如rena_0724 --> 图片保存至/img文件夹，标签保存为.csv文件)
-
-注：数据采集程序用到的舵机底层代码和数据集后处理代码均在utils中调用
 
