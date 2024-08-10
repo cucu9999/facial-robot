@@ -11,13 +11,10 @@ import logging
 # from utils.facial_actions_v2 import Facial_Primitives_Random
 from utils.servo_v2.HeadCtrlKit import HeadCtrl
 from utils.servo_v2.MouthCtrlKit import MouthCtrl
-from plan_ctrl_head_v3_emo import Servos_Ctrl,Servos
+from utils.servo_v2.facial_plan_ctrl_v2 import Servos_Ctrl,Servos
 import numpy as np
 
 
-# env_dir = os.path.join(script_dir, "../rena_utils")
-# img_dir = os.path.join(script_dir, "data_cache2process/face_img_test")
-# label_dir = os.path.join(script_dir, "data_cache2process")
 
 img_dir = os.path.join(script_dir,"datacollect/rena_0809_head_qian_01")
 # 确保路径存在，若不存在则创建
@@ -25,13 +22,6 @@ os.makedirs(img_dir, exist_ok=True)
 
 label_dir = img_dir + "/label.npy" # "/home/imillm/Desktop/0731_rena_data"
 
-
-def ensure_dir(directory):
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-        print(f"目录 '{directory}' 已创建。")
-    else:
-        print(f"目录 '{directory}' 已存在。")
 
 
 def save_frames(frame, save_dir, save_name):
@@ -80,6 +70,7 @@ def capture_and_save(headCtrl,mouthCtrl, cap, event, stop_event):
             stop_event.clear()
             break
 
+
 def ServoCtrlThread(counter,servosCtrl,headCtrl,mouthCtrl):
     while counter:
         new_servos = servosCtrl.Random_servos()
@@ -87,6 +78,7 @@ def ServoCtrlThread(counter,servosCtrl,headCtrl,mouthCtrl):
         # time.sleep(1.5)         #给记录留0.5秒
         counter -= 1
     servosCtrl.stop.set()
+
 
 def main():
     port_head  =  'COM8'

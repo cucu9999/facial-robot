@@ -9,7 +9,7 @@ import time
 import cv2
 import logging
 
-from utils.facial_actions_v2 import Facial_Primitives_Random
+from utils.servo_v2.facial_actions_v2 import Facial_Primitives_Random
 from utils.servo_v2.HeadCtrlKit import HeadCtrl
 from utils.servo_v2.MouthCtrlKit import MouthCtrl
 import numpy as np

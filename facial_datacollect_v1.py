@@ -9,8 +9,8 @@ label_dir = os.path.join(script_dir, "data_cache2process")
 
 sys.path.append(env_dir)
 # >> /media/2T/yongtong/Rena/rena_datasets/../rena_uitls
-from facial_actions_v1 import Facial_Primitives_Random
-from servo_control import ServoCtrl, Servo_Trans
+from utils.servo_v1.facial_actions_v1 import Facial_Primitives_Random
+from utils.servo_v1.servo_control import ServoCtrl, Servo_Trans
 
 import threading
 import time
