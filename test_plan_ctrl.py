@@ -43,11 +43,9 @@ def plan():
 
 
 
-
 if __name__ == "__main__":
 
     try:
-
         temp_ctrl.plan_and_pub(zero_servos, headCtrl, mouthCtrl, cycles=5)
         time.sleep(2)
         
@@ -57,7 +55,6 @@ if __name__ == "__main__":
         action_thread.start()
 
         
-    
     except Exception as e:
         print(f"引发了一个错误:{e}")
         
