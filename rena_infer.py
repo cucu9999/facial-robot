@@ -12,6 +12,7 @@ from utils.face_op_img import FaceMeshDetector
 from utils.face_op_stream import FaceMeshDetectorAsync
 from utils.setcamera import SetCamera
 from model.model import *
+from mediapipe.framework.formats import landmark_pb2
 from utils.servo_v2.facial_plan_ctrl_v2 import Servos_Ctrl
 
 from utils.servo_v2.HeadCtrlKit import HeadCtrl
@@ -95,8 +96,13 @@ def main():
         if stream_flag:
             img_frame, image_flag = set_camera.start_camera()  # 启动摄像头
             face_mesh_detector_async.update(img_frame, True)  # 调用关键点检测程序
-
             landmark, bs, r_mat = face_mesh_detector_async.get_results()
+            lm = landmark
+            if lm is not None:
+                lm_np = [[lm[i].x, lm[i].y, lm[i].z] for i in range(len(lm))]
+                lm_np = np.array(lm_np)
+                lm = [landmark_pb2.NormalizedLandmark(x=lm_np[i][0], y=lm_np[i][1], z=lm_np[i][2]) for i in range(lm_np.shape[0])]
+                face_mesh_detector_async.visualize_results(img_frame, image_flag, lm)
 
         if bs is not None:
             bs = torch.tensor(bs).unsqueeze(0)

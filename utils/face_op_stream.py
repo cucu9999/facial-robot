@@ -8,6 +8,7 @@ from scipy.spatial.transform import Rotation
 import matplotlib.pyplot as plt
 import sys
 import os
+from .setcamera import SetCamera
 
 script_dir = os.path.dirname(__file__)
 MP_TASK_FILE = os.path.join(script_dir, 'face_landmarker_v2_with_blendshapes.task')
@@ -121,7 +122,7 @@ if __name__ == "__main__":
     fm = FaceMeshDetectorAsync()
     sc = SetCamera()
     hp = HeadPose()
-    ef = EuroFilter()
+    # ef = EuroFilter()
     first_frame_flag = True
     a1 = []
     a2 = []
@@ -137,7 +138,7 @@ if __name__ == "__main__":
                 lm_np = [[lm[i].x, lm[i].y, lm[i].z] for i in range(len(lm))]
                 lm_np = np.array(lm_np)
                 a1.append(lm_np[10][0])
-                lm_np = ef.filter_signal(lm_np)
+                # lm_np = ef.filter_signal(lm_np)
                 a2.append(lm_np[10][0])
                 lm = [landmark_pb2.NormalizedLandmark(x=lm_np[i][0], y=lm_np[i][1], z=lm_np[i][2]) for i in range(lm_np.shape[0])]
                 fm.visualize_results(image, image_flag, lm)
