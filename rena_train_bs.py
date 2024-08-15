@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import argparse
 import os
 import time
+import subprocess
 
 script_dir = os.path.dirname(__file__)
 
@@ -203,7 +204,7 @@ def main(args):
 
     log_dir = os.path.join(script_dir, "runs", f"{args.model}_{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())}")
     writer = SummaryWriter(log_dir=log_dir)
-
+    tensorboard_process = subprocess.Popen(['tensorboard', '--logdir', log_dir, '--port', '6006'])
     blendshapes, labels = load_data(sample_path, label_path)
 
     train_dataloader, test_dataloader = preprocess_data(blendshapes, labels,args.batch_size)
@@ -230,6 +231,7 @@ def main(args):
     # val_loss = validate(model, dataloader, criterion)
     # print(f'Validation loss: {val_loss:.4f}')
 
+    tensorboard_process.terminate()
     writer.close()
 
     # save model and visualization

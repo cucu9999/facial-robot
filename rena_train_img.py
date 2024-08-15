@@ -9,7 +9,10 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import os
 from torch.utils.tensorboard import SummaryWriter
+import subprocess
 
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 script_dir = os.path.dirname(__file__)
 
@@ -78,13 +81,14 @@ class RegressionResNet(nn.Module):
             nn.Linear(self.resnet.fc.in_features, 256), 
             nn.ReLU(),  
 
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Dropout(0.4),
-            nn.Linear(128,64), 
-            nn.ReLU(),
-            nn.Dropout(0.4),
-            nn.Linear(64,num_outputs),
+            nn.Linear(256,num_outputs),
+            # nn.Linear(256, 128),
+            # nn.ReLU(),
+            # nn.Dropout(0.4),
+            # nn.Linear(128,64), 
+            # nn.ReLU(),
+            # nn.Dropout(0.4),
+            # nn.Linear(64,num_outputs),
             nn.Sigmoid()
 
         )
@@ -103,7 +107,7 @@ optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
 
 import csv
-def train_model(writer,num_epochs=200):
+def train_model(writer,num_epochs=500):
     train_losses = []
     test_losses = []
 
@@ -139,8 +143,8 @@ def train_model(writer,num_epochs=200):
         epoch_test_loss = running_test_loss / len(test_dataset)
         test_losses.append(epoch_test_loss)
 
-        writer.add_scalar('Loss/Train', epoch_train_loss.item(), epoch)
-        writer.add_scalar('Loss/Test', epoch_test_loss.item(), epoch)
+        writer.add_scalar('Loss/Train', epoch_train_loss, epoch)
+        writer.add_scalar('Loss/Test', epoch_test_loss, epoch)
 
         print(f'Epoch {epoch+1}/{num_epochs}, Train Loss: {epoch_train_loss:.8f}, Test Loss: {epoch_test_loss:.8f}')
 
@@ -159,9 +163,12 @@ def train_model(writer,num_epochs=200):
 
 log_dir = os.path.join(script_dir, "runs")
 writer = SummaryWriter(log_dir=log_dir)
+# 启动 TensorBoard 进程
+tensorboard_process = subprocess.Popen(['tensorboard', '--logdir', log_dir, '--port', '6006'])
 
 train_losses, test_losses = train_model(writer)
 
+tensorboard_process.terminate()
 writer.close()
 
 # 绘制损失曲线
