@@ -22,7 +22,7 @@ class CustomDataset(Dataset):
         self.image_folder = image_folder
         self.labels = labels
         self.transform = transform
-        self.image_files = sorted([f for f in os.listdir(image_folder) if f.endswith('.png')])
+        self.image_files = sorted([f for f in os.listdir(image_folder) if f.endswith(('.jpg',".png"))])
     
     def __len__(self):
         return len(self.image_files)
@@ -41,7 +41,7 @@ class CustomDataset(Dataset):
 # 加载标签数据
 # labels = np.load('/home/imillm/Desktop/nohead/0731_rena_data01_nohead/label_nohead_2999.npy')
 # labels = labels[:, :10]  # 仅头部和面部运动
-labels = np.load('/media/4T/yongtong/adatasets/rena_data/origin_data/rena_0807_nohead_02/label.npy')
+labels = np.load('/media/2T/yongtong/A-Datasets/rena_data/nohead/img_sum_9000_crop/label_9000.npy')
 
 
 # 数据预处理和数据增强
@@ -53,9 +53,8 @@ transform = transforms.Compose([
     # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
-# 创建数据集
-# dataset = CustomDataset('/home/imillm/Desktop/nohead/0731_rena_data01_nohead/img_01_crop_2999', labels, transform=transform)
-dataset = CustomDataset('/media/4T/yongtong/adatasets/rena_data/origin_data/rena_0807_nohead_02/img_crop', labels, transform=transform)
+
+dataset = CustomDataset('/media/2T/yongtong/A-Datasets/rena_data/nohead/img_sum_9000_crop', labels, transform=transform)
 
 
 train_size = int(0.9 * len(dataset))    # int(0.9 * len(dataset))   
@@ -107,7 +106,7 @@ optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
 
 import csv
-def train_model(writer,num_epochs=500):
+def train_model(num_epochs=200):
     train_losses = []
     test_losses = []
 
