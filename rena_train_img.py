@@ -8,6 +8,7 @@ from torchvision import models
 import matplotlib.pyplot as plt
 from PIL import Image
 import os
+from torch.utils.tensorboard import SummaryWriter
 
 
 script_dir = os.path.dirname(__file__)
@@ -60,7 +61,7 @@ train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
 batch_size = 1024
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
 
 
@@ -75,7 +76,14 @@ class RegressionResNet(nn.Module):
             nn.Dropout(p=0.4),  
             nn.Linear(self.resnet.fc.in_features, 256), 
             nn.ReLU(),  
-            nn.Linear(256, num_outputs),  
+
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Dropout(0.4),
+            nn.Linear(128,64), 
+            nn.ReLU(),
+            nn.Dropout(0.4),
+            nn.Linear(64,num_outputs),
             nn.Sigmoid()
 
         )
@@ -129,8 +137,11 @@ def train_model(num_epochs=200):
         
         epoch_test_loss = running_test_loss / len(test_dataset)
         test_losses.append(epoch_test_loss)
-        
-        print(f'Epoch {epoch+1}/{num_epochs}, Train Loss: {epoch_train_loss:.4f}, Test Loss: {epoch_test_loss:.4f}')
+
+        writer.add_scalar('Loss/Train', epoch_train_loss.item(), epoch)
+        writer.add_scalar('Loss/Test', epoch_test_loss.item(), epoch)
+
+        print(f'Epoch {epoch+1}/{num_epochs}, Train Loss: {epoch_train_loss:.8f}, Test Loss: {epoch_test_loss:.8f}')
 
     # 保存损失值到文件
     save_dir = os.path.join(script_dir, "losses")
@@ -144,7 +155,13 @@ def train_model(num_epochs=200):
     
     return train_losses, test_losses
 
-train_losses, test_losses = train_model()
+
+log_dir = os.path.join(script_dir, "runs")
+writer = SummaryWriter(log_dir=log_dir)
+
+train_losses, test_losses = train_model(writer)
+
+writer.close()
 
 # 绘制损失曲线
 plt.figure()
