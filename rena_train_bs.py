@@ -4,6 +4,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from model.model import Model_bs_mlp, Model_bs_mlp_v2,Kan_Model
 from torch.utils.data import TensorDataset, DataLoader, random_split
+from torch.utils.tensorboard import SummaryWriter
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,7 +27,18 @@ def load_data(sample_path, label_path):
     assert os.path.exists(data_labels_dir), f"Labels file not found at {data_labels_dir}"
 
     blendshapes = np.load(data_blendshapes_dir)  # (n, 52)
+
+    #数据清洗
+    # blendshapes = blendshapes[:, :25]
+    # bs2 = blendshapes[:, 24]
+    # blendshapes = np.hstack((bs1, bs2[:, np.newaxis]))
+
+
     labels = np.load(data_labels_dir)            # (n, 25)
+
+    # label_1 = labels[:, :13]
+    # label_2 = labels[:, -3]
+    # labels  = np.hstack( (label_1, label_2[:, np.newaxis]) ) # 所有运动，但是排除不动的舵机
 
     return blendshapes, labels
 
@@ -45,7 +57,7 @@ def preprocess_data(blendshapes, labels, batch_size):
     train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
-    test_dataloader = DataLoader(test_dataset, batch_size=64, shuffle=False, drop_last=False)   # 通常测试集不打乱顺序
+    test_dataloader = DataLoader(test_dataset, batch_size=256, shuffle=False, drop_last=False)   # 通常测试集不打乱顺序
 
     # return dataloader, seq_dataloader
     return train_dataloader, test_dataloader
@@ -129,7 +141,7 @@ def test_one_epoch(dataloader, device, model, criterion, optimizer):
 
 
 # training
-def train(model_name,model, device, dataloader, test_dataloader, criterion, optimizer,scheduler, epochs,lr,bs):
+def train(model_name,model, device, dataloader, test_dataloader, criterion, optimizer,scheduler, epochs,lr,bs,writer):
     model.to(device)
     model.train()
     train_losses = []
@@ -138,7 +150,10 @@ def train(model_name,model, device, dataloader, test_dataloader, criterion, opti
 
         epoch_loss = train_one_epoch(dataloader, device, model, criterion, optimizer)
         test_loss = test_one_epoch(test_dataloader, device, model, criterion, optimizer)
-        scheduler.step()
+        # scheduler.step()
+
+        writer.add_scalar('Loss/Train', epoch_loss.item(), epoch)
+        writer.add_scalar('Loss/Test', test_loss.item(), epoch)
 
         train_losses.append(epoch_loss) # .cpu().detach().numpy())
         test_losses.append(test_loss)
@@ -157,7 +172,10 @@ def train(model_name,model, device, dataloader, test_dataloader, criterion, opti
     current_timestamp = time.time()
     now = time.localtime(current_timestamp)
     formatted_now = time.strftime("%Y-%m-%d_%H-%M-%S",now)
-    with open(f'./losses/losses_{model_name}_epochs{epochs}_lr{lr}_bs{bs}_{formatted_now}.csv', 'w', newline='') as file:
+    save_dir = os.path.join(script_dir, "losses")
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = save_dir +f'/losses_{model_name}_epochs{epochs}_lr{lr}_bs{bs}_{formatted_now}.csv'
+    with open(save_path, 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['Epoch', 'Train Loss', 'Test Loss'])
         for epoch in range(epochs):
@@ -180,8 +198,11 @@ def validate(model, dataloader, criterion):
 from torch.optim.lr_scheduler import StepLR
 
 def main(args):
-    sample_path = os.path.join(script_dir, "rena_data/bs_2999.npy")
-    label_path = os.path.join(script_dir, "rena_data/label_nohead_2999.npy")
+    sample_path = os.path.join(script_dir, "rena_data/bs_5999.npy")
+    label_path = os.path.join(script_dir, "rena_data/label_nohead_5999.npy")
+
+    log_dir = os.path.join(script_dir, "runs", f"{args.model}_{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())}")
+    writer = SummaryWriter(log_dir=log_dir)
 
     blendshapes, labels = load_data(sample_path, label_path)
 
@@ -200,14 +221,16 @@ def main(args):
 
 
     optimizer = optim.Adam(model.parameters())  # , lr= args.lr)
-    scheduler = StepLR(optimizer, step_size=500, gamma=0.1) 
+    scheduler = StepLR(optimizer, step_size=1000, gamma=0.1) 
 
     # train and validate
     n_epochs = args.epochs # default = 10000
-    train_losses,test_losses = train(model_name,model, device, train_dataloader, test_dataloader, criterion, optimizer, scheduler, n_epochs,lr,bs) 
+    train_losses,test_losses = train(model_name,model, device, train_dataloader, test_dataloader, criterion, optimizer, scheduler, n_epochs,lr,bs,writer) 
 
     # val_loss = validate(model, dataloader, criterion)
     # print(f'Validation loss: {val_loss:.4f}')
+
+    writer.close()
 
     # save model and visualization
     current_timestamp = time.time()
@@ -221,9 +244,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Training script for LSTMNet') 
-    parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')  # 0.00001
-    parser.add_argument('--batch_size', type=int, default=512, help='Batch size')
-    parser.add_argument('--epochs', type=int, default=1500, help='Number of epochs')
+    parser.add_argument('--lr', type=float, default=0.00001, help='Learning rate')  # 0.00001
+    parser.add_argument('--batch_size', type=int, default=256, help='Batch size')
+    parser.add_argument('--epochs', type=int, default=15000, help='Number of epochs')
     parser.add_argument('--model', type=str, default='Model_bs_mlp_v2', help='Model name for Model_bs_mlp_v2, Model_bs_mlp,Kan_Model')
     
     args = parser.parse_args()

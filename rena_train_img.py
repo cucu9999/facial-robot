@@ -10,6 +10,7 @@ from PIL import Image
 import os
 
 
+script_dir = os.path.dirname(__file__)
 
 # 自定义数据集类
 class CustomDataset(Dataset):
@@ -75,7 +76,7 @@ class RegressionResNet(nn.Module):
             nn.Dropout(p=0.4),  
             nn.Linear(self.resnet.fc.in_features, 256), 
             nn.ReLU(),  
-            nn.Linear(128, num_outputs),  
+            nn.Linear(256, num_outputs),  
             nn.Sigmoid()
 
         )
@@ -133,7 +134,10 @@ def train_model(num_epochs=3000):
         print(f'Epoch {epoch+1}/{num_epochs}, Train Loss: {epoch_train_loss:.4f}, Test Loss: {epoch_test_loss:.4f}')
 
     # 保存损失值到文件
-    with open('losses_ck.csv', 'w', newline='') as file:
+    save_dir = os.path.join(script_dir, "losses")
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = save_dir +f'/losses_img.csv'
+    with open(save_path, 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['Epoch', 'Train Loss', 'Test Loss'])
         for epoch in range(num_epochs):
