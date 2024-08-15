@@ -76,14 +76,21 @@ def create_model(model_name):
         raise ValueError("Unknown model type")
 
 
-def plt_vis(n_epochs, train_losses):
-    # 将train_losses中的张量转换为CPU上的NumPy数组
+def plt_vis(n_epochs, train_losses, test_losses):
+    # 将train_losses和test_losses中的张量转换为CPU上的NumPy数组
     train_losses = [loss.cpu().item() for loss in train_losses]
-    plt.plot(range(1, n_epochs+1), train_losses, label='Training Loss')
+    test_losses = [loss.cpu().item() for loss in test_losses]
+    # 绘制训练损失曲线
+    plt.plot(range(1, n_epochs + 1), train_losses, label='Training Loss')
+    # 绘制测试损失曲线
+    plt.plot(range(1, n_epochs + 1), test_losses, label='Test Loss')
+    # 设置图形标签和标题
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
-    plt.title('Training Loss Curve')
+    plt.title('Training and Test Loss Curve')
+    # 显示图例
     plt.legend()
+    # 显示图形
     plt.show()
 
 
