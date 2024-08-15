@@ -52,36 +52,41 @@ transform = transforms.Compose([
 # dataset = CustomDataset('/home/imillm/Desktop/nohead/0731_rena_data01_nohead/img_01_crop_2999', labels, transform=transform)
 dataset = CustomDataset('/home/imillm/Desktop/ck_0805/img', labels, transform=transform)
 
-# 按照 9:1 分割数据集 18
-train_size = int(16/18 * len(dataset))    # int(0.9 * len(dataset))   
+
+train_size = int(0.9 * len(dataset))    # int(0.9 * len(dataset))   
 test_size =  len(dataset) - train_size
 train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
-# 数据加载器
+
 batch_size = 1024
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
 
-# 使用预训练的 ResNet 模型
+
+
 class RegressionResNet(nn.Module):
     def __init__(self, num_outputs):
         super(RegressionResNet, self).__init__()
         # self.resnet = models.resnet18(pretrained=True)
-        self.resnet = models.resnet18(pretrained=False)
+        self.resnet = models.resnet18(pretrained=False)    # self.resnet.fc.in_features 为512
+        # self.resnet = models.resnet34(pretrained = True) # self.resnet.fc.in_features 为512
 
-        # self.resnet = models.resnet34(pretrained = True)
         self.resnet.fc = nn.Sequential(
-            nn.Dropout(p=0.5),  # Dropout层，p表示丢弃概率
-            nn.Linear(self.resnet.fc.in_features, num_outputs),
-            # nn.Sigmoid()
+            nn.Dropout(p=0.4),  
+            nn.Linear(self.resnet.fc.in_features, 256), 
+            nn.ReLU(),  
+            nn.Linear(128, num_outputs),  
+            nn.Sigmoid()
+
         )
+
         # self.resnet.fc = nn.Linear(self.resnet.fc.in_features, num_outputs)
     
     def forward(self, x):
         return self.resnet(x)
 
-# model = RegressionResNet(num_outputs=10).to('cuda' if torch.cuda.is_available() else 'cpu')
-model = RegressionResNet(num_outputs=8).to('cuda' if torch.cuda.is_available() else 'cpu') # chenkai data
+
+model = RegressionResNet(num_outputs=25).to('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 criterion = nn.MSELoss()
