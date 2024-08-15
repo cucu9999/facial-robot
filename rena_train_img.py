@@ -8,6 +8,7 @@ from torchvision import models
 import matplotlib.pyplot as plt
 from PIL import Image
 import os
+from torch.utils.tensorboard import SummaryWriter
 
 
 script_dir = os.path.dirname(__file__)
@@ -18,7 +19,7 @@ class CustomDataset(Dataset):
         self.image_folder = image_folder
         self.labels = labels
         self.transform = transform
-        self.image_files = sorted([f for f in os.listdir(image_folder) if f.endswith('.jpg')])
+        self.image_files = sorted([f for f in os.listdir(image_folder) if f.endswith('.png')])
     
     def __len__(self):
         return len(self.image_files)
@@ -37,7 +38,7 @@ class CustomDataset(Dataset):
 # 加载标签数据
 # labels = np.load('/home/imillm/Desktop/nohead/0731_rena_data01_nohead/label_nohead_2999.npy')
 # labels = labels[:, :10]  # 仅头部和面部运动
-labels = np.load('/home/imillm/Desktop/ck_0805/joint.npy')
+labels = np.load('/media/4T/yongtong/adatasets/rena_data/origin_data/rena_0807_nohead_02/label.npy')
 
 
 # 数据预处理和数据增强
@@ -51,7 +52,7 @@ transform = transforms.Compose([
 
 # 创建数据集
 # dataset = CustomDataset('/home/imillm/Desktop/nohead/0731_rena_data01_nohead/img_01_crop_2999', labels, transform=transform)
-dataset = CustomDataset('/home/imillm/Desktop/ck_0805/img', labels, transform=transform)
+dataset = CustomDataset('/media/4T/yongtong/adatasets/rena_data/origin_data/rena_0807_nohead_02/img_crop', labels, transform=transform)
 
 
 train_size = int(0.9 * len(dataset))    # int(0.9 * len(dataset))   
@@ -61,7 +62,7 @@ train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
 batch_size = 1024
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
 
 
@@ -76,7 +77,14 @@ class RegressionResNet(nn.Module):
             nn.Dropout(p=0.4),  
             nn.Linear(self.resnet.fc.in_features, 256), 
             nn.ReLU(),  
-            nn.Linear(256, num_outputs),  
+
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Dropout(0.4),
+            nn.Linear(128,64), 
+            nn.ReLU(),
+            nn.Dropout(0.4),
+            nn.Linear(64,num_outputs),
             nn.Sigmoid()
 
         )
@@ -95,7 +103,7 @@ optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
 
 import csv
-def train_model(num_epochs=3000):
+def train_model(writer,num_epochs=200):
     train_losses = []
     test_losses = []
 
@@ -130,8 +138,11 @@ def train_model(num_epochs=3000):
         
         epoch_test_loss = running_test_loss / len(test_dataset)
         test_losses.append(epoch_test_loss)
-        
-        print(f'Epoch {epoch+1}/{num_epochs}, Train Loss: {epoch_train_loss:.4f}, Test Loss: {epoch_test_loss:.4f}')
+
+        writer.add_scalar('Loss/Train', epoch_train_loss.item(), epoch)
+        writer.add_scalar('Loss/Test', epoch_test_loss.item(), epoch)
+
+        print(f'Epoch {epoch+1}/{num_epochs}, Train Loss: {epoch_train_loss:.8f}, Test Loss: {epoch_test_loss:.8f}')
 
     # 保存损失值到文件
     save_dir = os.path.join(script_dir, "losses")
@@ -145,7 +156,13 @@ def train_model(num_epochs=3000):
     
     return train_losses, test_losses
 
-train_losses, test_losses = train_model()
+
+log_dir = os.path.join(script_dir, "runs")
+writer = SummaryWriter(log_dir=log_dir)
+
+train_losses, test_losses = train_model(writer)
+
+writer.close()
 
 # 绘制损失曲线
 plt.figure()
