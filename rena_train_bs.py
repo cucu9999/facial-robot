@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-from model.model import Model_bs_mlp, Model_bs_mlp_v2,Kan_Model
+from model.model import Model_bs_mlp, Model_bs_mlp_v2,Kan_Model            ,Model_bs_mlp_v2_att
 from torch.utils.data import TensorDataset, DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 import csv
@@ -72,6 +72,8 @@ def create_model(model_name):
         return Model_bs_mlp()
     elif model_name == "Kan_Model":
         return Kan_Model()
+    elif model_name == "Model_bs_mlp_v2_att":
+        return Model_bs_mlp_v2_att()    
     else:
         raise ValueError("Unknown model type")
 
@@ -233,13 +235,13 @@ def main(args):
 
     # train and validate
     n_epochs = args.epochs # default = 10000
-    train_losses,test_losses = train(model_name,model, device, train_dataloader, test_dataloader, criterion, optimizer, scheduler, n_epochs,lr,bs,writer) 
+    train_losses,test_losses = train(model_name,model, device, train_dataloader, test_dataloader, criterion, optimizer, scheduler, n_epochs,lr,bs, writer) 
 
     # val_loss = validate(model, dataloader, criterion)
     # print(f'Validation loss: {val_loss:.4f}')
 
     tensorboard_process.terminate()
-    writer.close()
+    # writer.close()
 
     # save model and visualization
     current_timestamp = time.time()
@@ -257,8 +259,9 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=256, help='Batch size')
     parser.add_argument('--epochs', type=int, default=15000, help='Number of epochs')
     parser.add_argument('--model', type=str, default='Model_bs_mlp_v2', help='Model name for Model_bs_mlp_v2, Model_bs_mlp,Kan_Model')
-    
+    # Model_bs_mlp_v2_att
+    # parser.add_argument('--model', type=str, default='Model_bs_mlp_v2_att', help='Model name for Model_bs_mlp_v2, Model_bs_mlp,Kan_Model')
+
     args = parser.parse_args()
 
     main(args)
-
